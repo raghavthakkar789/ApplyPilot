@@ -1,0 +1,6 @@
+{
+  "name": "@applypilot/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generated OpenAPI TypeScript contracts; do not edit generated files manually"
+}

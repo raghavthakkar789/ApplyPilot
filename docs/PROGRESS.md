@@ -3,9 +3,9 @@
 ## Current state
 
 - **Date:** 2026-09-02 (Asia/Kolkata)
-- **Phase:** Product Design handoff complete; M1 scaffolding is next
+- **Phase:** Milestone 1 foundation in progress
 - **Overall status:** Foundational documentation and the M1 design direction are
-  owner-approved. Application implementation has not started.
+  owner-approved. The service scaffold and first synthetic Discover slice are implemented.
 - **Technical blockers:** None.
 - **Decision blockers:** The unresolved decisions in
   [Decisions](DECISIONS.md) block their identified future milestones.
@@ -88,24 +88,33 @@ No remaining unresolved decision blocks the M1 foundation.
   - [Decisions](DECISIONS.md)
   - this progress record
 
+## Current implementation
+
+- Service-separated Next.js, FastAPI, worker, and PostgreSQL Compose scaffold
+- D-022 Discover workspace using synthetic typed fixtures only
+- Same-origin `/api` proxy and safe API live/ready health endpoints
+- SQLAlchemy and Alembic foundations without persistence models or revisions
+- Lifecycle-only worker without a queue or U-016 mechanism
+- Separate frontend, API, and worker test suites
+
 ## Not started
 
-- Application scaffolding or implementation
-- Database migrations
-- Dependency selection or installation
-- Automated or manual application tests
+- Authentication and owner initialization
+- Database persistence models and migration revisions
 - External-source integration
-- Deployment beyond the empty repository
+- Deployment beyond the local Compose runtime
 
-## Documentation validation completed
+## Scaffold validation completed
 
 - `git diff --check` passed.
-- `git status --short` reported only the new documentation files.
-- A targeted scope search found prohibited concepts only in explicit
-  prohibitions or deferred-capability statements.
-- Cross-document review corrected a premature HTTP label in the architecture
-  diagram and this progress record's pre-validation state.
-- No application tests were run because no application code exists.
+- Frontend formatting, lint, strict TypeScript, seven unit/accessibility tests,
+  and production build pass.
+- API Ruff, mypy, four pytest tests, Alembic history/import, and application
+  import pass.
+- Worker Ruff, mypy, and its lifecycle test pass.
+- Compose configuration confirms one default loopback host publication and no
+  floating image tags. Container build, health, visual QA, and final repository
+  checks are recorded in `design-qa.md` and the implementation commit report.
 
 ## Risks
 
@@ -121,7 +130,7 @@ No remaining unresolved decision blocks the M1 foundation.
 
 ## Exact next recommended task
 
-Scaffold the pinned Docker Compose modular monolith and implement the first
-D-022 UI slice with synthetic typed data. Keep U-008 unresolved until M5; do not
-add an AI provider, external submission, email sending, public hosting, or other
-later-milestone behavior.
+Implement the accepted single-owner initialization and session foundation in a
+separate reviewed slice. Preserve all still-unresolved decisions; do not add an
+AI provider, external submission, source scraping, public hosting, or a worker
+queue.

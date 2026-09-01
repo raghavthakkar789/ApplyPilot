@@ -24,6 +24,8 @@ Acceptance criteria:
 
 ## M1 — Local foundation and owner security
 
+**Current status (2026-09-02): in progress.** The service-separated Compose scaffold, synthetic D-022 Discover slice, API health boundary, lifecycle-only worker, and their initial tests are implemented. Authentication, owner initialization, persistence migrations/models, and the remaining M1 acceptance work are not implemented.
+
 After explicit approval, establish the Docker-based Next.js, FastAPI, and
 PostgreSQL environment, protected storage boundary, first-run setup, login,
 sessions, CSRF, throttling, logout, expiry, and local-shell password recovery.

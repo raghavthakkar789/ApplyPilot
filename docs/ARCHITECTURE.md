@@ -403,3 +403,11 @@ These defaults do not resolve the AI-provider or direct-submission questions.
 
 Data structures are detailed in [Database Schema](DATABASE_SCHEMA.md), and
 decision status is authoritative in [Decisions](DECISIONS.md).
+
+## 9. Implemented M1 scaffold (2026-09-02)
+
+The repository now applies the documented modular-monolith boundary as three service trees: `apps/web`, `apps/api`, and `apps/worker`. Each has an independent manifest, tests, and Dockerfile. `packages/api-client` is the generated OpenAPI client boundary; frontend code must not duplicate backend domain schemas manually.
+
+Default Compose publishes only Next.js at `127.0.0.1:3000`. The web container joins a host-edge network for that publication and the internal private network for API proxying; the other services join only the private network. Next.js rewrites same-origin `/api/*` traffic to private-network FastAPI. FastAPI, PostgreSQL 17.4, and the worker publish no default host ports. PostgreSQL uses a named volume. A loopback-only API port exists solely in the explicit `debug-api` profile.
+
+The FastAPI scaffold contains an application factory, versioned `/api` router, non-sensitive live/ready health endpoints, settings, redacting logging filter, SQLAlchemy session/Base boundaries, stable error schema, and Alembic configuration. No persistence model or authentication workflow is implemented. The worker is lifecycle-only; U-016 remains unresolved and no job mechanism is implied.
