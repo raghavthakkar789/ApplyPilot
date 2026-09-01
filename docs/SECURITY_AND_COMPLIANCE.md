@@ -66,44 +66,92 @@ fixtures or snapshots.
   afterward.
 - Password hashing uses Argon2id. Parameters are stored with the verifier and
   upgraded after successful authentication when policy changes.
-- Sessions use high-entropy opaque tokens. Only a keyed digest or strong hash
-  of each token is stored server-side.
-- Session cookies use `HttpOnly`, `SameSite=Strict`, `Path=/`, and the narrowest
-  practical domain scope. Milestone 1 permits `Secure=false` only in the
-  explicitly configured loopback HTTP environment.
+- Sessions use cryptographically secure opaque tokens with at least 256 bits of
+  entropy. The raw token goes only to the browser; PostgreSQL stores only a
+  cryptographic hash. JWT browser authentication is prohibited.
+- The cookie is named `applypilot_session` and uses `HttpOnly=true`,
+  `SameSite=Strict`, `Path=/`, and no `Domain` attribute. M1 permits
+  `Secure=false` only for loopback HTTP; future HTTPS/non-loopback operation
+  requires `Secure=true`. Cookie lifetime never exceeds absolute server expiry.
 - Session tokens never appear in `localStorage`, `sessionStorage`, URLs, or
   application logs.
-- State-changing requests require CSRF protection independent of SameSite.
-- Login is rate-limited with increasing delay and no account-existence leak.
+- Every state-changing request requires a session-bound custom-header CSRF
+  token with at least 256 bits of secure entropy plus exact Origin validation.
+  SameSite is defense in depth, not a replacement.
+- Login uses persistent D-020 exponential backoff and generic failures without
+  permanent account lockout.
 - Logout revokes the server session. Idle and absolute expiration are enforced
   server-side.
 - Password changes revoke existing sessions. Future TOTP changes must do so if
   TOTP is later activated.
 
-**Recommended defaults pending implementation review**
+**Accepted M1 session parameters**
+
+- Idle expiry is 60 minutes and absolute expiry is 12 hours from authentication.
+  Activity extends only idle expiry. M1 has no Remember me.
+- Allow three active sessions. Creating a fourth revokes the least recently
+  active. The owner can inspect non-invasive labels/times and revoke one or all
+  other sessions.
+- When practical, warn five minutes before idle expiry. Expiration returns to
+  login without putting sensitive form state in browser storage or URLs;
+  authenticated backend drafts preserve unsaved application work.
+- Raw session and CSRF values never enter Web Storage, URLs, JavaScript-readable
+  state, application logs, audit payloads, or full browser fingerprints.
+
+**Recommended implementation parameters still pending review**
 
 - Argon2id parameters should be benchmarked on the owner's computer to target
   approximately 250–500 ms per interactive hash while maintaining meaningful
   memory cost; record the selected values in `docs/DECISIONS.md`.
-- Use synchronizer CSRF tokens bound to the session and constant-time checks.
-- Rotate the session identifier at login and privilege-strength changes.
-- Use a 30-minute idle timeout and 12-hour absolute timeout.
-- Rate-limit by installation/account plus coarse client signals, with bounded
-  exponential backoff and security-event logging.
+- Use constant-time comparison where applicable.
 
-These numerical defaults are not yet accepted decisions.
+The Argon2id benchmark target remains a recommended default, not an accepted
+parameter decision.
 
-**Unresolved decisions**
+### Login and request throttling
 
-- Final timeout and throttling parameters.
+PostgreSQL tracks consecutive failures for the owner and loopback source
+context. Failures 5–10 impose 30, 60, 120, 240, 480, and then at most 900
+seconds; later failures remain capped at 900 seconds. Success resets the count.
+Local-shell recovery remains usable while HTTP login is throttled and does not
+erase security history.
+
+Authenticated APIs allow 300 requests per rolling five minutes per session.
+Expensive owner operations allow 10 per minute per session. Initialization
+allows three attempts per five minutes and becomes permanently unavailable
+after success. Only one source synchronization per adapter runs; repeats
+coalesce or report the existing job. Authentication uses its separate backoff.
+Rate-limit responses use HTTP 429 and safe `Retry-After` without private state.
+Generation limits remain under U-008; external-submission limits remain under
+U-002. Minimal liveness may be unauthenticated, but administrative health data
+cannot bypass authentication.
+
+Create a session only after successful authentication. Rotate the CSRF token
+when replacing a session. Password change, local recovery, restore, any future
+factor change, and suspected compromise revoke or replace affected sessions.
+Possession of a cookie never overrides server expiry, revocation, or credential
+version. Session activity writes occur at most once per five minutes while the
+effective idle deadline is enforced on every request.
+
+Security events distinguish successful, failed, and throttled login; logout;
+expiry; manual revocation; global invalidation; and credential-version
+invalidation. They contain no submitted password, session/CSRF value, or
+unnecessary private state. Generic failures do not reveal setup, password,
+session, or throttle state.
 
 ## 3.1 Milestone 1 transport policy
 
-Milestone 1 uses plain HTTP strictly over loopback. Frontend and backend host
-endpoints bind to `127.0.0.1`, never `0.0.0.0`. PostgreSQL remains unexposed on
-the private Docker network. LAN access, public ingress, port forwarding, and
-remote access are prohibited. Strict Host and Origin allowlists admit only the
-explicitly configured loopback endpoints.
+Milestone 1 uses plain HTTP strictly over loopback. Only Next.js publishes by
+default, at host `127.0.0.1:3000`; it proxies same-origin `/api` requests to
+FastAPI through the private Docker network. FastAPI, PostgreSQL, and the worker
+have no default host publication. Container-internal listeners may use
+`0.0.0.0` for private-network communication; host publication on `0.0.0.0`, a
+LAN address, or a public interface is prohibited. A FastAPI host port exists
+only in an explicit loopback debugging profile.
+
+The sole browser-visible origin is `http://127.0.0.1:3000`. Host and Origin
+validation, cookies, and CSRF rules use that exact origin. LAN access, public
+ingress, ordinary port forwarding, and remote access are prohibited.
 
 Any future non-loopback configuration requires HTTPS and `Secure=true` session
 cookies. Configuration validation MUST fail closed before serving requests if
@@ -357,9 +405,11 @@ and defaults to new approval.
 
 - Docker Compose is the sole supported and acceptance-tested Milestone 1
   runtime and canonical operational interface.
-- For Milestone 1, bind frontend and backend specifically to `127.0.0.1`; do
-  not bind to `0.0.0.0`, expose LAN access, or configure port forwarding.
-- Do not publish PostgreSQL or internal worker ports.
+- For M1, publish only Next.js by default at host `127.0.0.1:3000`; proxy `/api`
+  to FastAPI on the private network. Do not publish FastAPI except through an
+  explicit loopback-only debugging profile.
+- Do not publish PostgreSQL or worker ports. Container-internal `0.0.0.0`
+  listeners are allowed when needed and are not public exposure.
 - Keep service communication on a private Docker network.
 - Pin Node.js, Python, PostgreSQL, toolchain, dependency, and image versions and
   perform vulnerability review before releases.

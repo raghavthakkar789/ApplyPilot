@@ -18,11 +18,13 @@ types remain subject to review. See [Architecture](ARCHITECTURE.md).
 | `installation` | Exactly one row; setup state, schema/application version, initialization timestamp. |
 | `owner_account` | At most one row; login identifier, Argon2id hash, credential version, created/changed timestamps, disabled state. Credential version changes on password reset. |
 | `owner_security_settings` | Session policy. May gain optional TOTP enrollment state in a future migration; M1 requires no TOTP value. |
-| `sessions` | Opaque-token digest, creation, last activity, idle/absolute expiry, revocation time/reason, authentication strength, and credential version. Supports transactional revocation of every session. |
+| `sessions` | Cryptographic hash of an opaque token with at least 256 bits of source entropy; creation, last activity, idle/absolute expiry, revocation time/reason, credential version, and optional non-sensitive local client label. Raw tokens and full fingerprints are prohibited. Supports authoritative expiry, individual/global revocation, and the three-session cap. |
+| `session_csrf_tokens` | Session-bound cryptographic token hash or equivalent verifier, creation/rotation/expiry metadata; at least 256 bits of source entropy and no raw token in audit data. |
 | `totp_credentials` | Future optional design: encrypted TOTP secret, enrollment and confirmation timestamps. Not created or populated in M1. |
 | `totp_recovery_codes` | Future optional design: individually hashed one-use codes, consumption time, and invalidation time/reason. Not created or populated in M1. |
-| `login_rate_limits` | Recommended durable backoff state keyed without leaking account existence. |
-| `security_events` | Append-only login, logout, setup, local recovery, credential, TOTP, throttling, and session events. Contains event type, time, outcome, and minimal non-secret metadata; never a password, hash, token, recovery secret, or unnecessary personal data. |
+| `login_rate_limits` | Durable singleton owner/loopback-context consecutive-failure count, last failure, blocked-until time, and reset metadata implementing D-020's capped exponential backoff across restarts. |
+| `request_rate_limits` | Rolling-window or bucket state for per-session general and expensive operations, initialization attempts, and per-adapter synchronization/coalescing where persistence is needed. |
+| `security_events` | Append-only successful/failed/throttled login, logout, expiry, manual revocation, global invalidation, credential-version invalidation, setup, recovery, credential, and future-TOTP events. Contains time, outcome, reason class, and minimal non-secret metadata; never a password, hash, session/CSRF token, recovery secret, or unnecessary personal data. |
 
 The one-owner rule MUST have a database-enforced singleton constraint and a
 transactional initialization path; application checks alone are insufficient.
@@ -39,6 +41,15 @@ reset alone never changes TOTP state.
 TOTP-compatible tables may be deferred to the future migration that activates
 the feature. If their definitions exist earlier, they must remain optional and
 empty and must not cause dormant routes or behavior to exist.
+
+Session creation occurs only after successful authentication. Database/service
+constraints enforce 60-minute idle and 12-hour absolute expiry, credential-
+version validity, and at most three active sessions; a fourth creation revokes
+the least recently active session transactionally. Activity may extend only the
+idle deadline. Last-activity persistence is coalesced to no more than once per
+five minutes without weakening effective expiry checks. Password change,
+recovery, restore, future factor change, and suspected compromise invalidate
+the applicable sessions.
 
 ## 2.1 Backup and restore classification
 

@@ -58,13 +58,19 @@ choose an interpretation.
   migrations, backup, and recovery. Native Fedora commands are debugging aids
   only. Do not introduce Podman, Kubernetes, cloud, hosted, or remote runtime
   paths during Milestone 1.
-- For Milestone 1, bind both frontend and backend host endpoints to
-  `127.0.0.1`, use plain HTTP only in that explicitly configured loopback
-  environment, and keep PostgreSQL private to Docker. Fail closed if a
-  non-loopback configuration lacks HTTPS and `Secure=true` session cookies.
+- For Milestone 1, publish only Next.js at host `127.0.0.1:3000`. Proxy
+  same-origin `/api` traffic to FastAPI on the private Docker network; keep
+  FastAPI, PostgreSQL, and the worker unpublished by default. Container-internal
+  listeners may use `0.0.0.0` when required for inter-container communication;
+  never publish a port on host `0.0.0.0`, a LAN address, or a public interface.
+  A FastAPI host port is allowed only in an explicit loopback debugging profile.
 - Use protected local file storage for the MVP unless an accepted decision
   changes it. Redis and S3-compatible storage are deferred until justified.
 - Enforce security and Final Apply rules in the backend, not only in UI code.
+- M1 uses hashed opaque sessions, never JWT browser authentication. Follow
+  D-020 for the `applypilot_session` cookie, 60-minute idle/12-hour absolute
+  expiry, three-session cap, CSRF/Origin validation, persistent login backoff,
+  request limits, revocation, and token-free audit rules.
 - Password recovery is local-shell only: never add a forgot-password UI or HTTP
   endpoint. A successful password reset atomically replaces the hash, revokes
   every session, and writes a redacted security event.

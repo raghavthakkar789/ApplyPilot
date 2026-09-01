@@ -72,16 +72,14 @@ must remain in the log with a link to the replacing decision.
 ### D-010 — Milestone 1 loopback HTTP transport
 
 - **Status:** Accepted; resolves U-015
-- **Decision:** Milestone 1 uses plain HTTP strictly over loopback. Frontend and
-  backend host endpoints bind to `127.0.0.1`, never `0.0.0.0`; PostgreSQL is
-  private to the Docker network. LAN access, public ingress, port forwarding,
-  and remote access are prohibited. Strict Host and Origin allowlists are
-  required.
-- **Session policy:** Use opaque server-managed sessions. Cookies use
-  `HttpOnly`, `SameSite=Strict`, `Path=/`, and the narrowest practical domain
-  scope. `Secure=false` is permitted only for the explicitly configured
-  loopback HTTP environment. Tokens never appear in browser storage, URLs, or
-  application logs. State-changing requests require CSRF protection.
+- **Decision, amended by D-021:** Milestone 1 uses plain HTTP strictly over
+  loopback. Only Next.js publishes by default at host `127.0.0.1:3000`;
+  FastAPI, PostgreSQL, and worker remain private to Docker. Host `0.0.0.0`, LAN,
+  public ingress, ordinary port forwarding, and remote access are prohibited.
+- **Session policy, finalized by D-020:** Use opaque server-managed sessions.
+  The host-only cookie has no `Domain`; `Secure=false` is permitted only for the
+  explicit loopback HTTP environment. Tokens never enter browser storage, URLs,
+  or logs. Unsafe requests require session-bound CSRF and exact Origin checks.
 - **Future boundary:** Any non-loopback configuration requires HTTPS and
   `Secure=true`; the backend fails closed otherwise. Locally trusted HTTPS is
   deferred until non-loopback access is intentionally introduced.
@@ -114,10 +112,11 @@ must remain in the log with a link to the replacing decision.
   runtime. It is the canonical interface for setup, development, tests,
   migrations, backup, and recovery. Native Fedora commands may be debugging
   aids only and are not separately supported or acceptance-tested.
-- **Network:** Frontend and backend host publications bind only to
-  `127.0.0.1`; PostgreSQL has no host-published port by default; services use a
-  private Docker network. Binding to `0.0.0.0`, a LAN address, or a public
-  interface violates Milestone 1 policy.
+- **Network, amended by D-021:** Next.js alone publishes by default at host
+  `127.0.0.1:3000`; it proxies `/api` to private-network FastAPI. PostgreSQL and
+  worker have no host ports. A debug-only FastAPI publication may bind to
+  loopback. Host publication on `0.0.0.0`, LAN, or public interfaces violates
+  M1 policy; internal container listeners may use `0.0.0.0`.
 - **Runtime controls:** Pin Node.js, Python, PostgreSQL, and toolchain versions;
   use a PostgreSQL named volume and protected persistent document storage; run
   application containers non-root where practical; prevent root-owned Fedora
@@ -337,22 +336,77 @@ must remain in the log with a link to the replacing decision.
   change creates a weight-set version. AI cannot silently change capability
   weights, and older-version scores are labelled.
 
+### D-020 — M1 sessions, CSRF, and throttling
+
+- **Status:** Accepted; resolves U-017
+- **Session:** Generate opaque tokens with at least 256 bits of secure entropy
+  only after successful authentication, send raw values only to the browser,
+  and store only cryptographic hashes. JWT browser authentication is prohibited.
+  Server state is authoritative.
+- **Cookie:** Use host-only `applypilot_session` with `HttpOnly=true`,
+  `SameSite=Strict`, `Path=/`, no `Domain`, and lifetime no longer than absolute
+  expiry. `Secure=false` is loopback-HTTP-only; future HTTPS/non-loopback uses
+  `Secure=true`.
+- **Expiry and concurrency:** Idle expiry is 60 minutes and absolute expiry is
+  12 hours. Activity extends only idle. M1 has no Remember me. Allow three
+  active sessions; a fourth revokes the least recently active. Provide
+  non-invasive session inspection and individual/all-other revocation.
+- **Invalidation:** Password change, local recovery, restore, future factor
+  change, and suspected compromise revoke affected sessions. Expiry returns to
+  login without sensitive browser/URL persistence; backend drafts protect work.
+- **CSRF:** Every unsafe request uses a session-bound custom-header token with
+  at least 256 bits of entropy plus exact allowed-Origin validation. Rotate it
+  with session replacement; reject missing, malformed, expired, or mismatched
+  values. SameSite is defense in depth.
+- **Login backoff:** Persist consecutive failures. Failures 5–10 delay 30, 60,
+  120, 240, 480, and 900 seconds; later failures cap at 900. Success resets the
+  count. There is no permanent lockout; failures and events are generic and
+  redacted; local recovery remains available.
+- **Request limits:** Per session, allow 300 authenticated requests per rolling
+  five minutes and 10 expensive owner operations per minute. Setup allows three
+  attempts per five minutes until permanently disabled. Only one synchronization
+  runs per adapter. Return safe HTTP 429/Retry-After. U-008 governs generation
+  limits and U-002 governs future submission limits.
+- **Storage/audit:** Retain token hash, creation/activity/expiry/revocation,
+  credential version, and optional non-invasive label. Coalesce activity writes
+  to once per five minutes without weakening idle checks. Distinguish all
+  accepted login/session event classes without storing passwords or token values.
+
+### D-021 — Same-origin Docker network amendment
+
+- **Status:** Accepted amendment to D-010 and D-012
+- **Boundary:** Host publication differs from container listening. Containers
+  may listen internally on `0.0.0.0` when needed on the isolated Docker network;
+  this is not public exposure. No host port may bind on `0.0.0.0`, LAN, or a
+  public interface.
+- **Topology:** Only Next.js publishes by default, at `127.0.0.1:3000`. It
+  proxies same-origin `/api` to FastAPI through the private network. FastAPI,
+  PostgreSQL, and worker are private. PostgreSQL never has a default host port.
+- **Debugging:** FastAPI may publish temporarily only through an explicit
+  debugging profile bound to loopback; this is absent from default Compose.
+- **Browser security:** The canonical browser-visible origin is
+  `http://127.0.0.1:3000`. Cookie, CSRF, Host, and Origin controls consistently
+  enforce that single origin.
+
 ## Recommended defaults awaiting acceptance
 
 - D-R01: Modular monolith with a PostgreSQL-backed worker when asynchronous
   work becomes necessary.
 - D-R02: Protected local filesystem for documents.
-- D-R04: Session target of 30-minute idle and 12-hour absolute expiry.
 - D-R05: Benchmark Argon2id locally for an approximately 250–500 ms interactive
   hash, then record exact parameters.
 - D-R06: Safest approval behavior: any uncertain materiality or retry requires
   a new review and Final Apply approval.
 
+## Superseded recommendations
+
+- D-R04: The former 30-minute idle/12-hour absolute session target is
+  superseded by D-020's accepted 60-minute idle/12-hour absolute policy.
+
 ## Unresolved decisions
 
 | ID | Decision needed | Classification | Affected milestone |
 | --- | --- | --- | --- |
-| U-017 | Final session idle/absolute timeout and login-throttling parameters | blocks M1 foundation | M1 |
 | U-002 | Does the initial product stop at an application package or submit anywhere directly? | blocks a later named milestone | M7 |
 | U-003 | Which destinations, if any, support direct submission? | requires external/provider-specific research | M7 |
 | U-004 | Approval lifetime, retry authorization, and material-change taxonomy | blocks a later named milestone | M6–M7 |
@@ -372,6 +426,6 @@ must remain in the log with a link to the replacing decision.
 
 ## Next recommended decision
 
-Resolve U-017 next: accept final session idle/absolute timeout and login-
-throttling parameters before M1 authentication implementation. U-008 remains
-unresolved and requires provider-specific research before M5.
+Resolve U-008 next: select the AI provider boundary and accept data-disclosure,
+processing-region, retention, and training-use rules before M5. It requires
+provider-specific research and does not block the M1 foundation.

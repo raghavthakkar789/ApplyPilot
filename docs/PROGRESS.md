@@ -12,8 +12,8 @@
 
 ## Unresolved-decision classification
 
-- **Blocks M1 foundation:** U-017, the final session idle/absolute timeout and
-  login-throttling parameters.
+No remaining unresolved decision blocks the M1 foundation.
+
 - **Blocks a later named milestone:** U-002 (M7), U-004 (M6–M7), U-005
   (M5–M7), and U-011 (M7).
 - **Requires external/provider-specific research:** U-003 (M7 destination
@@ -64,6 +64,14 @@
   capability/preference weights, coverage-adjusted ranking, separate eligibility
   and confidence outputs, evidence-bound blocker rules, immutable versioning,
   prohibited inputs, and measurable fairness tests.
+- Resolved U-017 through D-020: M1 now has accepted opaque hashed sessions,
+  host-only cookie settings, 60-minute idle/12-hour absolute expiry, a
+  three-session cap, session-bound CSRF, persistent login backoff, request
+  limits, revocation, and redacted auditing.
+- Accepted D-021, amending D-010 and D-012: only Next.js publishes by default at
+  `127.0.0.1:3000`; same-origin `/api` proxies to private-network FastAPI.
+  Internal container `0.0.0.0` listeners are allowed, while non-loopback host
+  publication remains prohibited.
 - Drafted the foundational documentation set:
   - [Repository instructions](../AGENTS.md)
   - [Product Requirements](PRODUCT_REQUIREMENTS.md)
@@ -107,7 +115,6 @@
 
 ## Exact next recommended task
 
-Review the documentation with the owner and resolve U-017 by accepting final
-session idle/absolute timeout and login-throttling parameters. U-008 remains
-unresolved pending provider-specific research. Do not scaffold M1 until the
-documentation milestone and its prerequisite decisions are approved.
+Review the documentation with the owner and resolve U-008 through
+provider-specific research before M5. It does not block the M1 foundation. Do
+not scaffold M1 until the documentation milestone is approved.

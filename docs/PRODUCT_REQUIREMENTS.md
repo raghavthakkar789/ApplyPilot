@@ -33,6 +33,12 @@ protections, consent, rate limits, and terms are never bypassed.
   after which account creation is permanently disabled.
 - Authentication exists solely to protect the owner's private data.
 - Initial access is from the same Fedora computer over loopback.
+- The sole browser-visible M1 origin is `http://127.0.0.1:3000`. Only Next.js
+  publishes by default; it proxies `/api` to private-network FastAPI. PostgreSQL
+  and worker remain private, and FastAPI host publication is debug-profile-only.
+- Container-internal `0.0.0.0` listening is allowed for private Docker
+  communication; host publication on `0.0.0.0`, LAN, or public interfaces is
+  prohibited.
 - Docker Compose is the only supported and acceptance-tested Milestone 1
   runtime. Native Fedora execution may be documented only for debugging.
 - Initial jurisdiction is India under a personal/domestic-use engineering scope
@@ -54,6 +60,20 @@ for authentication and approval; "candidate" is used for job-fit data.
 - Authentication MUST use opaque, server-managed sessions in HTTP-only
   cookies, with CSRF protection, login throttling, logout, idle expiry, and
   absolute expiry.
+- Session and CSRF tokens MUST each have at least 256 bits of cryptographically
+  secure entropy. Store only the session-token hash. M1 does not use JWT browser
+  authentication or Remember me.
+- Use the host-only `applypilot_session` cookie with `HttpOnly`,
+  `SameSite=Strict`, `Path=/`, no `Domain`, and a lifetime no longer than the
+  authoritative server session. `Secure=false` is loopback-HTTP-only.
+- Enforce a 60-minute idle timeout, 12-hour absolute timeout, and maximum three
+  active sessions. Activity cannot extend absolute expiry; a fourth session
+  revokes the least recently active session.
+- Every unsafe browser request requires a session-bound CSRF token in a custom
+  header and exact Origin validation against `http://127.0.0.1:3000`.
+- Persist login failures and use D-020's bounded exponential backoff. Apply the
+  accepted general, expensive-operation, initialization, and synchronization
+  request limits without permanent account lockout.
 - Account creation endpoints MUST become unavailable after initialization.
 - M1 authentication uses the owner password as its only application-level
   factor; Fedora OS access remains part of the local trust boundary.
@@ -418,7 +438,6 @@ Later milestone criteria are in
 
 ## 7. Unresolved decisions
 
-- Final session idle/absolute timeout and login-throttling parameters for M1.
 - Whether the initial product stops at an application package or directly
   submits to any destinations.
 - Direct-submission destinations, retry semantics, and approval lifetime.

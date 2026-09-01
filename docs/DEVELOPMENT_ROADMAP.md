@@ -32,10 +32,12 @@ canonical interface for all M1 operational commands.
 
 Acceptance criteria:
 
-- All services bind according to the loopback/private-network design.
-- Frontend and backend publish only on host `127.0.0.1`; PostgreSQL publishes
-  no host port; negative configuration tests reject `0.0.0.0`, LAN, and public
-  bindings.
+- Next.js alone publishes by default at host `127.0.0.1:3000`; same-origin
+  `/api` reaches FastAPI through the private Docker network. FastAPI,
+  PostgreSQL, and worker have no default host ports.
+- Network tests distinguish container-internal `0.0.0.0` listeners from host
+  publication and reject host `0.0.0.0`, LAN, and public bindings. An explicit
+  debug profile may publish FastAPI only on loopback.
 - Node.js, Python, PostgreSQL, and relevant toolchain versions are pinned.
 - PostgreSQL survives container recreation through a named volume; private
   documents survive through protected local storage or a dedicated volume.
@@ -70,9 +72,27 @@ Acceptance criteria:
   tombstones, prospective policy changes, and failure atomicity.
 - A 20-request concurrent setup test produces exactly one owner.
 - Account creation is inaccessible after setup.
-- Authentication and CSRF positive and negative paths pass automatically.
-- Session rotation, logout, idle expiry, absolute expiry, and credential-change
-  revocation pass automatically.
+- Session tests verify at least 256 bits of token entropy, hash-only database
+  storage, cookie name/attributes, no JWT or Remember me, authoritative
+  revocation, 60-minute idle and 12-hour absolute expiry, and no extension of
+  absolute expiry by activity.
+- CSRF tests verify at least 256 bits of entropy, session binding, custom-header
+  delivery, rotation, exact `http://127.0.0.1:3000` Origin validation, and
+  rejection of missing/malformed/expired/mismatched values.
+- Three-session-cap tests revoke the least recently active fourth session;
+  session management supports individual/all-other revocation without invasive
+  fingerprinting.
+- Password change, recovery, restore, future-factor-change hooks, suspected
+  compromise, logout, expiry, and credential version tests revoke sessions.
+- Persistent login tests cover failures 5–10 at 30/60/120/240/480/900 seconds,
+  the 900-second cap, success reset, generic errors, no permanent lockout, and
+  local recovery availability.
+- Request-limit tests cover 300 per five minutes, expensive operations 10 per
+  minute, setup three per five minutes, one active sync per adapter, HTTP 429
+  with safe Retry-After, and authenticated administrative health data.
+- Activity-coalescing tests limit database writes to once per five minutes
+  without weakening idle enforcement. Audit tests cover every D-020 event class
+  and prove passwords/session/CSRF values are absent.
 - CLI tests verify hidden double-entry, first-run password policy reuse, atomic
   hash replacement, all-session invalidation, and a redacted security event.
 - Failure-injection tests verify that password and sessions remain unchanged
@@ -86,7 +106,7 @@ Acceptance criteria:
   claim is exposed in M1.
 - Secret scanning reports no committed secrets or private data.
 
-Blocked by decisions on initial session parameters. The exact password-recovery command
+Session parameters are accepted in D-020. The exact password-recovery command
 name and implementation structure will be finalized during this milestone
 without changing the accepted security behavior.
 

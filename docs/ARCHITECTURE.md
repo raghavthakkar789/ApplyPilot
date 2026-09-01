@@ -15,22 +15,21 @@ This architecture implements the requirements in
 
 ```text
 Owner browser on Fedora
-        |-------------------------------|
-        | loopback HTTP                 | loopback HTTP
-        v                               v
-Next.js web component          FastAPI application ---- PostgreSQL
-                                      |
-                                      +---- protected local file storage
-                                      |
-                                      +---- worker process
-                                      |
-                                      +---- approved external adapters
+        | loopback HTTP: 127.0.0.1:3000
+        v
+Next.js web component -- same-origin /api proxy --> FastAPI application
+                                                      | private Docker network
+                                                      +---- PostgreSQL
+                                                      +---- protected local storage
+                                                      +---- worker process
+                                                      +---- approved adapters
 ```
 
 ### Responsibilities
 
-- **Next.js:** rendering and interaction. It does not independently authorize
-  submissions or decide whether facts are verified.
+- **Next.js:** rendering, interaction, and same-origin `/api` proxying to
+  FastAPI. It does not independently authorize submissions or decide whether
+  facts are verified.
 - **FastAPI:** authentication, validation, domain rules, source adapters,
   scoring orchestration, generation controls, approval verification, and audit
   writes.
@@ -51,13 +50,19 @@ Next.js web component          FastAPI application ---- PostgreSQL
 **Accepted Milestone 1 network policy**
 
 - Use plain HTTP strictly over loopback.
-- Bind both frontend and backend host endpoints to `127.0.0.1`, never
-  `0.0.0.0`.
+- Publish only Next.js by default, bound on the host as `127.0.0.1:3000`.
+- Keep FastAPI, PostgreSQL, and the worker reachable only through the private
+  Docker network. The browser uses the Next.js same-origin `/api` proxy and
+  does not directly access FastAPI.
+- A container may listen on internal `0.0.0.0` when required for communication
+  on the isolated Docker network. This is not host or public exposure.
+- A temporary FastAPI host port is permitted only in an explicit debugging
+  profile and must bind to host loopback; it is absent from default Compose.
 - Do not provide LAN access, public ingress, port forwarding, or remote access.
 - Keep PostgreSQL exclusively on the private Docker network with no
   host-published port.
-- Enforce strict Host and Origin allowlists containing only the explicitly
-  configured loopback endpoints.
+- Enforce the canonical browser-visible Host and Origin
+  `http://127.0.0.1:3000`; unsafe requests require exact Origin validation.
 - Permit `Secure=false` for session cookies only in the explicit loopback HTTP
   environment. Any non-loopback configuration requires HTTPS and
   `Secure=true`; the backend MUST fail closed before serving requests when
@@ -65,11 +70,11 @@ Next.js web component          FastAPI application ---- PostgreSQL
 - Defer locally trusted HTTPS until remote or non-loopback access is
   intentionally introduced and reviewed.
 
-All services communicate through a private Docker network. Only the frontend
-and backend publish host ports, each bound explicitly to `127.0.0.1`.
-PostgreSQL publishes no host port by default. Publishing any service through
-`0.0.0.0`, a LAN address, or a public interface violates the Milestone 1
-security policy.
+All services communicate through a private Docker network. Only Next.js
+publishes a default host port. PostgreSQL never publishes a default host port.
+Publishing any service through host `0.0.0.0`, a LAN address, or a public
+interface violates M1 policy; this restriction does not prohibit internal
+container listeners on `0.0.0.0`.
 
 **Accepted Milestone 1 runtime policy**
 
@@ -96,10 +101,32 @@ security policy.
 - Use Docker secrets or owner-protected, ignored environment files for local
   secrets.
 
-The container topology and health checks must preserve the host binding and
-fail-closed rules; Docker defaults must not silently publish a service on all
+The container topology and health checks preserve host binding and fail-closed
+rules; Docker defaults must not silently publish a service on all host
 interfaces. Remote ingress remains deferred and requires a new threat-model
 review.
+
+### M1 session and request-control flow
+
+After successful authentication, FastAPI generates an opaque session token with
+at least 256 bits of secure entropy, stores only its cryptographic hash, and
+returns the raw value only in the host-only `applypilot_session` cookie. The
+server record is authoritative. JWT browser authentication and Remember me do
+not exist. Idle expiry is 60 minutes and absolute expiry is 12 hours; activity
+never extends the latter. At most three sessions remain active, with the least
+recently active revoked upon creation of a fourth.
+
+Next.js sends unsafe same-origin API requests through its private-network proxy
+with a custom-header CSRF token. The token has at least 256 bits of entropy, is
+bound to and rotated with the session, never appears in a URL, and is validated
+alongside exact Origin `http://127.0.0.1:3000`. FastAPI rejects missing,
+malformed, expired, or mismatched tokens. Safe read-only methods and explicitly
+documented non-browser endpoints are the only possible exemptions.
+
+PostgreSQL holds persistent login-failure/backoff state, active session limits,
+revocation and credential-version state, and request-throttle accounting where
+durability is required. Session activity persistence is coalesced to at most
+one write per five minutes while effective idle expiry is still enforced.
 
 ## 4. Critical flows
 
