@@ -3,9 +3,9 @@
 ## Current state
 
 - **Date:** 2026-09-02 (Asia/Kolkata)
-- **Phase:** M0 — Foundational documentation
-- **Overall status:** Documentation drafted and locally validated; owner review
-  is pending. Application implementation has not started.
+- **Phase:** Product Design handoff complete; M1 scaffolding is next
+- **Overall status:** Foundational documentation and the M1 design direction are
+  owner-approved. Application implementation has not started.
 - **Technical blockers:** None.
 - **Decision blockers:** The unresolved decisions in
   [Decisions](DECISIONS.md) block their identified future milestones.
@@ -72,6 +72,11 @@ No remaining unresolved decision blocks the M1 foundation.
   `127.0.0.1:3000`; same-origin `/api` proxies to private-network FastAPI.
   Internal container `0.0.0.0` listeners are allowed, while non-loopback host
   publication remains prohibited.
+- Accepted D-022 and [Design System](DESIGN_SYSTEM.md): the approved fourth
+  concept now governs the M1 sidebar, editorial workspace, responsive
+  master/detail layout, evidence-first matching UI, accessible states, and
+  preparation-only action boundary. Mock identities, jobs, scores, dates, and
+  eligibility claims remain synthetic rather than product data.
 - Drafted the foundational documentation set:
   - [Repository instructions](../AGENTS.md)
   - [Product Requirements](PRODUCT_REQUIREMENTS.md)
@@ -79,6 +84,7 @@ No remaining unresolved decision blocks the M1 foundation.
   - [Database Schema](DATABASE_SCHEMA.md)
   - [Security and Compliance](SECURITY_AND_COMPLIANCE.md)
   - [Development Roadmap](DEVELOPMENT_ROADMAP.md)
+  - [Design System](DESIGN_SYSTEM.md)
   - [Decisions](DECISIONS.md)
   - this progress record
 
@@ -115,6 +121,7 @@ No remaining unresolved decision blocks the M1 foundation.
 
 ## Exact next recommended task
 
-Review the documentation with the owner and resolve U-008 through
-provider-specific research before M5. It does not block the M1 foundation. Do
-not scaffold M1 until the documentation milestone is approved.
+Scaffold the pinned Docker Compose modular monolith and implement the first
+D-022 UI slice with synthetic typed data. Keep U-008 unresolved until M5; do not
+add an AI provider, external submission, email sending, public hosting, or other
+later-milestone behavior.

@@ -20,8 +20,10 @@ Before making any architectural or application-workflow change, read all of:
 - `docs/DECISIONS.md`
 - `docs/PROGRESS.md`
 
-Also read `docs/DATABASE_SCHEMA.md` before changing persistence and
-`docs/DEVELOPMENT_ROADMAP.md` before changing milestone scope. If documents
+Also read `docs/DATABASE_SCHEMA.md` before changing persistence,
+`docs/DEVELOPMENT_ROADMAP.md` before changing milestone scope, and
+`docs/DESIGN_SYSTEM.md` before changing product UI, layout, components, visual
+language, responsive behavior, or user-facing match terminology. If documents
 conflict, stop and record the conflict in `docs/DECISIONS.md`; do not silently
 choose an interpretation.
 
@@ -120,6 +122,11 @@ choose an interpretation.
   are not gaps; inference cannot score or affect blockers; protected traits and
   proxies never affect any match output. Preserve immutable rule, weight,
   requirement, match, correction, and application-time snapshot history.
+- D-022 and `docs/DESIGN_SYSTEM.md` govern the approved M1 visual direction.
+  Treat the reference image as composition, not product truth: use typed domain
+  data, D-019 terminology, synthetic fixtures, responsive master/detail behavior,
+  accessible states, and preparation-only actions. Never hardcode its identity,
+  employers, scores, eligibility claims, dates, or implied submission behavior.
 - Add proportionate tests for every change. Security and approval-boundary
   changes require negative-path and concurrency tests.
 - Update `docs/DECISIONS.md` for accepted or superseded decisions and

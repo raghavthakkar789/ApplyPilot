@@ -388,6 +388,32 @@ must remain in the log with a link to the replacing decision.
   `http://127.0.0.1:3000`. Cookie, CSRF, Host, and Origin controls consistently
   enforce that single origin.
 
+### D-022 — Approved M1 product-design direction
+
+- **Status:** Accepted
+- **Visual direction:** Use the owner-approved fourth concept: a dark structured
+  sidebar, light editorial workspace, split opportunity list/detail layout, and
+  evidence-rich match analysis. `DESIGN_SYSTEM.md` is the implementation
+  contract for tokens, typography, spacing, responsive behavior, components,
+  states, accessibility, and the first UI slice.
+- **Mockup boundary:** The reference defines hierarchy and composition only. Its
+  people, jobs, companies, dates, percentages, locations, eligibility claims,
+  and source records are synthetic and cannot be hardcoded or treated as verified
+  owner/job data.
+- **Terminology corrections:** Derived alignment is not an overall-fit or hiring
+  prediction. Eligibility uses compatible, unclear, or blocked. Under 40%
+  capability evidence coverage, show Insufficient evidence rather than a precise
+  combined percentage. Score-only praise or discouragement is prohibited.
+- **Action boundary:** Prepare application opens a preparation workflow and does
+  not submit, send email, create a candidate, or contact an employer. Final Apply
+  remains outside M1 and unresolved later-milestone behavior cannot be mocked as
+  active functionality.
+- **Implementation gate:** The first slice is an authenticated, responsive shell
+  with synthetic typed Discover data and working search, filter, sort, save,
+  selection, match-evidence, loading, empty, uncertain, blocked, insufficient-
+  evidence, and error states. Design QA, keyboard operation, and WCAG 2.2 AA are
+  required before handoff.
+
 ## Recommended defaults awaiting acceptance
 
 - D-R01: Modular monolith with a PostgreSQL-backed worker when asynchronous
