@@ -1,0 +1,377 @@
+# Decisions
+
+This log distinguishes approved direction from proposals. Do not treat a
+recommended default as accepted without an owner decision. Superseded entries
+must remain in the log with a link to the replacing decision.
+
+## Accepted decisions
+
+### D-001 — Permanent single-owner scope
+
+- **Status:** Accepted
+- **Decision:** One owner account exists for the installation's lifetime.
+  First-run setup initializes it and later account creation is disabled.
+- **Consequences:** Domain tables do not require generic ownership scoping.
+  Authentication protects private local data.
+
+### D-002 — Fedora-local, loopback-only first milestone
+
+- **Status:** Accepted
+- **Decision:** Initial operation is Docker-based on the owner's Fedora
+  computer, with published access restricted to loopback.
+- **Consequences:** Remote access requires a later explicit security review.
+
+### D-003 — Core technology direction
+
+- **Status:** Accepted
+- **Decision:** Next.js/TypeScript frontend, Python/FastAPI backend,
+  PostgreSQL system of record, and Docker local environment.
+
+### D-004 — MVP document storage
+
+- **Status:** Recommended default
+- **Proposal:** Protected local filesystem storage with metadata and digests in
+  PostgreSQL. S3-compatible storage remains deferred until justified.
+- **Rationale:** It fits a local installation with fewer moving parts.
+
+### D-005 — Authentication baseline
+
+- **Status:** Accepted
+- **Decision:** Argon2id, opaque HTTP-only cookie sessions, CSRF defense, login
+  rate limiting, logout, server-side idle/absolute expiry, and a future-compatible
+  TOTP boundary are required. TOTP is not an M1 factor.
+
+### D-006 — Human approval boundary
+
+- **Status:** Accepted
+- **Decision:** No submission without explicit Final Apply. Approval binds one
+  exact payload and destination; material changes invalidate it. Every attempt
+  and result is audited.
+
+### D-007 — Truth and provenance boundary
+
+- **Status:** Accepted
+- **Decision:** Generated content cannot invent candidate facts; unknown facts
+  remain unknown. Job and candidate provenance is retained.
+- **Verification rule:** Only explicit owner confirmation makes an immutable,
+  versioned fact verified. D-015 defines its binding lifecycle.
+
+### D-008 — Third-party controls
+
+- **Status:** Accepted
+- **Decision:** ApplyPilot never bypasses CAPTCHAs, anti-bot or authentication
+  controls, consent, rate limits, or terms. Official APIs, OAuth, and
+  owner-authenticated sessions are preferred over stored site passwords.
+
+### D-009 — Optional infrastructure
+
+- **Status:** Accepted
+- **Decision:** Redis and S3-compatible storage are not MVP dependencies and
+  remain deferred until measurements or deployment needs justify them.
+
+### D-010 — Milestone 1 loopback HTTP transport
+
+- **Status:** Accepted; resolves U-015
+- **Decision:** Milestone 1 uses plain HTTP strictly over loopback. Frontend and
+  backend host endpoints bind to `127.0.0.1`, never `0.0.0.0`; PostgreSQL is
+  private to the Docker network. LAN access, public ingress, port forwarding,
+  and remote access are prohibited. Strict Host and Origin allowlists are
+  required.
+- **Session policy:** Use opaque server-managed sessions. Cookies use
+  `HttpOnly`, `SameSite=Strict`, `Path=/`, and the narrowest practical domain
+  scope. `Secure=false` is permitted only for the explicitly configured
+  loopback HTTP environment. Tokens never appear in browser storage, URLs, or
+  application logs. State-changing requests require CSRF protection.
+- **Future boundary:** Any non-loopback configuration requires HTTPS and
+  `Secure=true`; the backend fails closed otherwise. Locally trusted HTTPS is
+  deferred until non-loopback access is intentionally introduced.
+
+### D-011 — Local-shell password recovery
+
+- **Status:** Accepted; resolves U-009
+- **Decision:** Password recovery is available only through a dedicated CLI
+  command run from the local ApplyPilot project/runtime environment. Control of
+  the local Fedora OS account plus authorized runtime/database access is the
+  recovery authority. No frontend, HTTP, email, SMS, security-question, or
+  remote recovery flow exists.
+- **Password behavior:** Prompt twice with hidden input, enforce the first-run
+  password policy, and atomically replace the Argon2id hash, revoke all
+  sessions, and append a redacted security event. Any failure leaves the
+  current hash and sessions unchanged. Messages are generic and reveal no
+  secrets.
+- **Future TOTP boundary:** M1 password recovery works without TOTP records and
+  has no TOTP reset option. If TOTP is activated later, password reset does not
+  reset it; TOTP reset requires a separate option, prominent warning, and
+  additional confirmation and invalidates the credential, recovery codes, and
+  all sessions while writing a redacted event.
+- **Deferred detail:** Authentication scaffolding will finalize the exact
+  command name and implementation. Backups are not password recovery.
+
+### D-012 — Canonical Milestone 1 runtime
+
+- **Status:** Accepted; resolves U-014
+- **Decision:** Docker Compose is the canonical and only supported Milestone 1
+  runtime. It is the canonical interface for setup, development, tests,
+  migrations, backup, and recovery. Native Fedora commands may be debugging
+  aids only and are not separately supported or acceptance-tested.
+- **Network:** Frontend and backend host publications bind only to
+  `127.0.0.1`; PostgreSQL has no host-published port by default; services use a
+  private Docker network. Binding to `0.0.0.0`, a LAN address, or a public
+  interface violates Milestone 1 policy.
+- **Runtime controls:** Pin Node.js, Python, PostgreSQL, and toolchain versions;
+  use a PostgreSQL named volume and protected persistent document storage; run
+  application containers non-root where practical; prevent root-owned Fedora
+  bind-mount output; keep secrets in ignored local files or an equivalent local
+  mechanism; limit `.env.example` to safe placeholders; and use health checks
+  with readiness-aware startup.
+- **Deferred:** Podman, Kubernetes, cloud deployment, public hosting, and
+  remote access.
+
+### D-013 — TOTP deferred beyond Milestone 1
+
+- **Status:** Accepted; resolves U-013
+- **Decision:** M1 uses the owner password as its only application-level
+  authentication factor. Fedora OS access remains part of the trust boundary.
+  TOTP is future-compatible but is not implemented, configured, advertised,
+  generated, or enabled in M1.
+- **M1 exclusions:** No TOTP secrets or recovery codes are generated; no MFA
+  enrollment, verification, reset, recovery UI, HTTP routes, dormant handlers,
+  or capability claims exist. Password recovery requires no TOTP record.
+- **Future gate:** Activation requires threat-model review, complete enrollment
+  and verification, encrypted secrets, hashed single-use recovery codes, reset
+  and disable procedures, session invalidation, migrations, rollback, and
+  dedicated tests. Non-loopback or remote-access proposals reopen this decision.
+- **Preserved future behavior:** A future explicit TOTP reset is separate from
+  password reset and invalidates sessions and recovery codes.
+
+### D-014 — Encrypted backup and isolated restoration
+
+- **Status:** Accepted; resolves U-010
+- **Bundle:** Create versioned bundles containing a consistent PostgreSQL dump,
+  required uploaded/generated historical documents, and a manifest with time,
+  application/schema/format versions, inventory, sizes, and checksums. Preserve
+  credentials, profiles, provenance, application/approval/submission history,
+  and audit events; exclude sessions/tokens, temporary data, caches, logs,
+  plaintext secrets, environment files, and unnecessary artifacts.
+- **Encryption:** Encrypt every final bundle to an age public key. Restrictive
+  plaintext staging is removed on success/failure. The private identity stays
+  outside Git, repository, database, bundle, and destination; the owner keeps
+  an offline copy and accepts that loss prevents restoration.
+- **Storage and retention:** Write outside repository and live database/document
+  storage. M1 does not upload backups; encrypted copies may be placed on an
+  external drive or OneDrive-synced folder. Keep 7 daily, 4 weekly, 6 monthly,
+  and always the last known-good bundle. Cleanup follows successful verified
+  creation. Data-altering migrations require a prior verified backup.
+- **Restore:** Local-shell-only through Docker Compose, with services stopped,
+  explicit timestamp/target confirmation, isolated validation, compatible
+  versions, checksum/readability tests, atomic database/document replacement,
+  previous-state preservation, session revocation, and a redacted post-start
+  event. Complete an M1 drill and repeat after material format/schema changes.
+- **Separation:** Backups are not password recovery. Private keys/passphrases
+  never pass through arguments, logs, Git configuration, or committed files.
+
+### D-015 — Verified-fact lifecycle and conflicts
+
+- **Status:** Accepted; resolves U-006
+- **Lifecycle:** Canonical facts have immutable versions in `unverified`,
+  `verified`, `stale`, `conflicted`, or `revoked` states. Only explicit owner
+  confirmation verifies; edits create unverified versions; revocation blocks
+  future use without rewriting history.
+- **Evidence and inference:** Extraction/import/owner entry create unverified
+  candidates. Inference is a separate, labelled matching-only signal. Agreement,
+  confidence, recency, majority, models, and missing evidence never establish or
+  resolve truth. Claims cite exact eligible verified versions.
+- **Reconfirmation:** Stable completed history has no automatic expiry but may
+  become stale on change/edit/revocation; current identity/preferences use 90
+  days; authorization/availability/compensation use 30 days plus attestation;
+  legal declarations use each exact payload; highly sensitive voluntary answers
+  use each destination and attempt and are not retained by default.
+- **Conflicts:** Overlapping same-key values are blocked until the owner selects,
+  corrects, scopes, or revokes and supplies an audited reason.
+- **Applications:** Approval binds the exact payload, fact versions, immutable
+  snapshots, destination, and attempt. Ineligible/unknown facts block required
+  answers and Final Apply. Supporting fact changes or conflict resolution
+  invalidate affected approval while historical applications remain unchanged.
+
+### D-016 — India personal-use legal scope and data lifecycle
+
+- **Status:** Accepted; resolves U-012
+- **Scope:** India is the owner and local runtime jurisdiction; use is
+  single-owner personal/domestic. This is an
+  engineering assumption, not legal advice or universal compliance
+  certification. Foreign destinations still require their forms, declarations,
+  transfers, and terms. Stricter source/destination rules win; D-018 governs
+  approved M1 sources and their compliance profiles.
+- **Reopen gate:** Public, multi-user, commercial, remote/non-loopback,
+  employer/recruiter, multi-person analytics, high-volume automated use, or
+  processing another person's profile.
+- **Retention:** Active data while active; superseded facts/resumes 24 months
+  unless referenced; unacted jobs 180 days; saved jobs two years unless pinned;
+  abandoned drafts 180 days after warning; submitted application history five
+  years after final status; security/admin audits one year subject to holds;
+  logs at most 30 days; temporary files immediately; signals with source/recompute.
+- **Sensitive data:** Unsubmitted answers purge within 30 days of abandonment;
+  submitted answers follow application history, are visibly marked, never
+  speculatively collected/reused, and remain owner-deletable with dependencies.
+- **Deletion:** Dependency preview and export precede confirmation; default
+  trash is 30 days with immediate sensitive purge. Permanent deletion removes
+  live/derived content, preserves only a redacted tombstone, and gives an
+  explicit fact-snapshot/application deletion choice.
+- **Backups:** Existing encrypted bundles expire under D-014 rather than being
+  surgically rewritten. Newer tombstones are reapplied after restore before
+  serving. Cleanup is dry-run-first, auditable, prospective, dependency-aware,
+  and cannot automatically delete an in-window submitted application.
+
+### D-017 — Worldwide job discovery with explicit eligibility dimensions
+
+- **Status:** Accepted
+- **Decision:** Discovery is worldwide; India is not a job filter. Include
+  India, international remote, overseas hybrid/on-site, relocation, sponsorship,
+  internship, part-time, contract, and full-time opportunities.
+- **Structure:** Store owner jurisdiction, job country/region/city/timezone,
+  employer/destination jurisdiction, remote class, relocation, authorization,
+  sponsorship, employment type, compensation/currency, languages, and source
+  eligibility text separately. Preserve original URL/source/employer/location.
+- **Preferences:** Support worldwide, country/city include/exclude/preference,
+  remote mode, relocation, timezones, sponsorship, employment types, minimum
+  compensation by currency, and languages.
+- **Matching:** Explain separate technical, experience, location, remote,
+  authorization, sponsorship, language, timezone, and relocation lanes. Never
+  infer citizenship/nationality/visa/authorization/protected traits/relocation.
+  Unknowns remain unknown; technical strength cannot hide other blockers.
+- **Legal boundary:** ApplyPilot explains sourced requirements but does not
+  determine immigration eligibility or claim universal compliance. D-015
+  governs current owner answers; stricter destination/source rules and D-018
+  remain authoritative. Worldwide discovery does not make the tool a service.
+
+### D-018 — Approved M1 read-only discovery sources
+
+- **Status:** Accepted; resolves U-001
+- **Approved adapters:** Greenhouse Job Board API, Lever Postings API, Ashby
+  Public Job Posting API, and Remotive Public Jobs API. They retrieve only
+  public published postings through documented public interfaces and cannot
+  authenticate as the owner, create candidates, call employer/private APIs, or
+  submit applications.
+- **ATS registry:** Greenhouse board tokens, Lever employer sites, and Ashby
+  board names must be explicit, owner-managed, reviewed configurations. Each
+  registry entry records employer, verified domain, provider, board identifier,
+  career URL, state, verification time, and method. Discovery never crawls for
+  boards; invalid, redirected, repurposed, or mismatched entries are disabled.
+- **Source boundaries:** Greenhouse excludes Harvest, Candidate Ingestion,
+  partner, admin, and private APIs; Lever excludes Data, candidate, partner,
+  internal, credentialed, and private APIs; Ashby excludes authenticated,
+  employer, candidate, partner, and private APIs. Remotive requires visible
+  “Source: Remotive” attribution, its supplied URL, and no redistribution.
+- **Provenance:** Preserve source/posting ID, source and canonical application
+  URLs, employer and board, retrieval and supplied publication/update times,
+  original location/remote values, attribution, raw payload version/hash, and
+  adapter version. Raw and normalized values remain distinct, derivations are
+  traceable, unknowns remain unknown, and duplicates retain every source link.
+- **Unsupported automation:** LinkedIn, Indeed, Glassdoor, Naukri, Wellfound,
+  Google Jobs, social media, arbitrary search results, and sites without an
+  approved API/feed or permission cannot be scraped, crawled, reverse-
+  engineered, or accessed through copied endpoints or owner cookies. Controls,
+  consent, rate limits, terms, and access restrictions are never bypassed.
+- **Manual entry:** Owner-supplied jobs are labelled “Manually entered — source
+  not automatically verified,” cause no URL fetch, and preserve distinct
+  provenance through reconciliation and duplicate detection.
+- **Resilience and terms:** Each adapter owns rate, retry, timeout, circuit
+  breaker, pagination, deduplication, attribution, retention, and health rules.
+  Failure is isolated and never deletes the last valid copy; closure requires
+  confirmation across refreshes. Stricter source terms override defaults.
+- **Application boundary:** This decision approves discovery only. Apply opens
+  Application Studio for package preparation; no M1 source adapter submits.
+  Later submission requires a destination-specific decision, terms and threat
+  reviews, payload mapping, approval contract, and tests. Success requires a
+  destination receipt or owner-confirmed outcome.
+- **Conditional future sources:** Adzuna requires an account, current terms,
+  attribution/quota/caching/retention review, coverage tests, and contract
+  tests; Arbeitnow requires recorded API/attribution rules; USAJOBS requires a
+  separate evaluation. A free API key is not approval. Every added source needs
+  a new decision and adapter-specific compliance profile.
+
+### D-019 — Deterministic matching, blockers, confidence, and fairness
+
+- **Status:** Accepted; resolves U-007
+- **Boundary:** Matching is deterministic, explainable, versioned, and
+  reproducible. LLMs may extract cited requirements but cannot set final scores,
+  eligibility, or blockers. Outputs describe alignment, never hiring/interview
+  probability, recruiter interest, candidate quality, or job performance.
+- **Outputs:** Separately show 0–100 capability alignment, 0–100 preference
+  compatibility, compatible/unclear/blocked eligibility, 0–100 evidence
+  coverage, high/medium/low extraction confidence, factor/action lists, and a
+  visible ranking derivation.
+- **Weights:** Capability relative weights are technical 35, experience/
+  seniority 25, role/responsibility 15, domain 10, education/certifications 10,
+  normalized into 85% of combined alignment. Preferences are employment type
+  4, location/workplace 4, compensation 4, and timezone 3, totaling 15%.
+- **Formula:** Evaluable requirements score full 1.0, partial 0.5, or verified
+  gap 0.0. Unknowns leave numerator and denominator and reduce weighted evidence
+  coverage. Combined alignment is 85% capability plus 15% preference. Ranking
+  is `combined_alignment * (0.50 + 0.50 * evidence_coverage)`. Under 40%
+  capability coverage, show “Insufficient evidence,” not a precise combined
+  percentage. Store precision and versions; round display to whole numbers.
+- **Requirements:** Mandatory items receive 3x preferred weight; substantive
+  descriptive work may receive 0.5x preferred; boilerplate/marketing receives
+  zero. Preferred wording cannot become mandatory. Mandatory status needs a
+  citation; low-confidence classification is unclear pending owner review.
+- **Blockers:** Eligibility is separate. Blocking requires an explicit cited
+  mandatory requirement, adequate extraction confidence or owner review, and a
+  directly contradictory current verified fact with citations. Missing data,
+  ambiguity, preference, or inference cannot block. Blocked jobs stay visible;
+  overrides preserve original result, reason, time, and view preference.
+- **Inference/confidence:** Inference supports discovery recall and a separate
+  Possible relevance explanation only. It cannot score, satisfy requirements,
+  affect blockers, or enter application content. Confidence measures parsing,
+  not suitability or truth; changed source content invalidates affected
+  requirements and creates a new match version.
+- **Fairness:** Protected traits and proxies, prestige, source identity,
+  employment gaps, and generic career-change penalties never affect match
+  output. Authorization/sponsorship affect eligibility only; compensation
+  affects preferences only. M1 does not learn weights from outcomes.
+- **Versioning/UX:** Requirement, rule, weight, match, correction, override,
+  diff, and application-time snapshots are immutable. Every component expands
+  to its evidence; unknowns, gaps, possible relevance, and blockers are visibly
+  distinct. Score-only celebratory or discouraging language is prohibited. The
+  owner may later adjust preference weights within documented limits; every
+  change creates a weight-set version. AI cannot silently change capability
+  weights, and older-version scores are labelled.
+
+## Recommended defaults awaiting acceptance
+
+- D-R01: Modular monolith with a PostgreSQL-backed worker when asynchronous
+  work becomes necessary.
+- D-R02: Protected local filesystem for documents.
+- D-R04: Session target of 30-minute idle and 12-hour absolute expiry.
+- D-R05: Benchmark Argon2id locally for an approximately 250–500 ms interactive
+  hash, then record exact parameters.
+- D-R06: Safest approval behavior: any uncertain materiality or retry requires
+  a new review and Final Apply approval.
+
+## Unresolved decisions
+
+| ID | Decision needed | Classification | Affected milestone |
+| --- | --- | --- | --- |
+| U-017 | Final session idle/absolute timeout and login-throttling parameters | blocks M1 foundation | M1 |
+| U-002 | Does the initial product stop at an application package or submit anywhere directly? | blocks a later named milestone | M7 |
+| U-003 | Which destinations, if any, support direct submission? | requires external/provider-specific research | M7 |
+| U-004 | Approval lifetime, retry authorization, and material-change taxonomy | blocks a later named milestone | M6–M7 |
+| U-005 | Which additional sensitive fields, beyond D-015's named categories, require per-application confirmation? | blocks a later named milestone | M5–M7 |
+| U-008 | AI provider, data disclosure, processing region, retention, and training terms | requires external/provider-specific research | M5 |
+| U-011 | Manual, source, or email-derived application-status updates | blocks a later named milestone | M7 |
+| U-016 | Exact worker trigger and PostgreSQL-backed implementation | deferred optional capability | Later milestone that demonstrates an asynchronous-work need |
+
+## Deferred capabilities
+
+- Remote access and public hosting
+- Browser extension
+- Redis-backed queues/caching
+- S3-compatible document storage
+- Unapproved submission adapters
+- Automated sending of follow-up communications
+
+## Next recommended decision
+
+Resolve U-017 next: accept final session idle/absolute timeout and login-
+throttling parameters before M1 authentication implementation. U-008 remains
+unresolved and requires provider-specific research before M5.
