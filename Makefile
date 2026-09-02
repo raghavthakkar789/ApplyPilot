@@ -1,4 +1,4 @@
-.PHONY: help setup dev build test lint format security-scan check down logs
+.PHONY: help setup dev build test lint typecheck format security-scan check down logs
 
 help:
 	@echo "ApplyPilot commands (Docker Compose is canonical):"
@@ -7,6 +7,7 @@ help:
 	@echo "  make build          Build service images"
 	@echo "  make test           Run web, API, and worker tests"
 	@echo "  make lint           Run frontend/API/worker lint and type checks"
+	@echo "  make typecheck      Run frontend and API type checks"
 	@echo "  make format         Check or apply repository formatters"
 	@echo "  make security-scan  Check environment and secret boundaries"
 	@echo "  make check          Run lint, tests, and security scan"
@@ -23,21 +24,26 @@ build:
 	docker compose build
 
 test:
-	docker compose run --rm web pnpm test --run
+	docker compose --profile test run --rm --no-deps web-test pnpm test --run
 	docker compose --profile test run --rm api-test
-	docker compose run --rm worker uv run pytest
+	docker compose --profile test run --rm --no-deps worker-test
 
 lint:
-	docker compose run --rm web pnpm lint
-	docker compose run --rm web pnpm typecheck
+	./scripts/check-lint-runtime.sh
+	docker compose --profile test run --rm --no-deps web-test pnpm lint
+	docker compose --profile test run --rm --no-deps web-test pnpm typecheck
 	docker compose --profile test run --rm --no-deps api-test ruff check src tests migrations
 	docker compose --profile test run --rm --no-deps api-test mypy src
-	docker compose run --rm worker uv run ruff check .
+	docker compose --profile test run --rm --no-deps worker-test ruff check .
+
+typecheck:
+	docker compose --profile test run --rm --no-deps web-test pnpm typecheck
+	docker compose --profile test run --rm --no-deps api-test mypy src
 
 format:
-	docker compose run --rm web pnpm format
+	docker compose --profile test run --rm --no-deps web-test pnpm format
 	docker compose --profile test run --rm --no-deps api-test ruff format --check src tests migrations
-	docker compose run --rm worker uv run ruff format .
+	docker compose --profile test run --rm --no-deps worker-test ruff format .
 
 security-scan:
 	./scripts/check-security-boundaries.sh

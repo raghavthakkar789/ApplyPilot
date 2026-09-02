@@ -1,12 +1,23 @@
-FROM python:3.13.15-slim-bookworm
+FROM python:3.13.15-slim-bookworm AS base
 ARG APP_UID=1000
 ARG APP_GID=1000
 RUN groupadd --gid ${APP_GID} applypilot && useradd --uid ${APP_UID} --gid ${APP_GID} --create-home applypilot
 COPY --from=ghcr.io/astral-sh/uv:0.12.3 /uv /uvx /bin/
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
+
+FROM base AS runtime
 COPY src ./src
 RUN uv sync --frozen --no-dev --no-editable
 ENV PATH="/app/.venv/bin:$PATH" PYTHONPATH="/app/src" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 USER applypilot
 CMD ["python", "-m", "applypilot_worker.main"]
+
+FROM base AS test
+COPY src ./src
+COPY tests ./tests
+RUN uv sync --frozen --dev --no-editable
+ENV PATH="/app/.venv/bin:$PATH" PYTHONPATH="/app/src" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    RUFF_CACHE_DIR=/tmp/ruff-cache MYPY_CACHE_DIR=/tmp/mypy-cache
+USER applypilot
+CMD ["pytest", "-q"]

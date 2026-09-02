@@ -162,6 +162,14 @@ No remaining unresolved decision blocks the M1 foundation.
   merge/split decisions require a reason and retain source history. Two
   consecutive successful refresh misses are required before closure.
 
+## Canonical lint runtime (2026-09-02)
+
+- `make lint` no longer invokes `pnpm` in the production web runner. Frontend
+  lint and typecheck run in Compose `web-test`; API lint remains on `api-test`;
+  worker lint runs in `worker-test`.
+- Production web, API, and worker images keep their runtime layers. The
+  `test` profile still publishes no host ports.
+
 ## Not started
 
 - Any source beyond the four D-018-approved public adapters

@@ -22,6 +22,7 @@ COPY migrations ./migrations
 COPY src ./src
 COPY tests ./tests
 RUN uv sync --frozen --dev --no-editable
-ENV PATH="/app/.venv/bin:$PATH" PYTHONPATH="/app/src" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV PATH="/app/.venv/bin:$PATH" PYTHONPATH="/app/src" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    RUFF_CACHE_DIR=/tmp/ruff-cache MYPY_CACHE_DIR=/tmp/mypy-cache
 USER applypilot
 CMD ["pytest", "-q"]

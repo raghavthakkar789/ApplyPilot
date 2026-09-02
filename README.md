@@ -167,10 +167,14 @@ to the local Fedora account and ApplyPilot runtime.
 ## Validation
 
 Use `make check` for static and unit checks and `docker compose config` for
-Compose validation. Backend tests use the `test` profile and an unpublished,
-tmpfs-backed PostgreSQL test service; they never target the live named volume.
-Individual commands are documented in the Makefile. Docker Compose remains the
-canonical setup, build, migration, recovery, and runtime interface.
+Compose validation. Backend tests use the `test` profile, the `api-test`
+image, and an unpublished tmpfs-backed PostgreSQL test service; they never
+target the live named volume. Frontend lint, typecheck, format, and unit tests
+run in the unpublished `web-test` image. Worker lint and tests run in
+`worker-test`. The production web runner remains a standalone Next.js image
+without development tooling. Individual commands are documented in the
+Makefile. Docker Compose remains the canonical setup, build, migration,
+recovery, and runtime interface.
 
 Job persistence, source adapters, AI/OCR extraction, background jobs, external
 submission, TOTP/MFA, and real candidate data are intentionally absent from

@@ -7,6 +7,11 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
+FROM deps AS test
+COPY . .
+ENV NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 COREPACK_ENABLE_NETWORK=0
+CMD ["pnpm", "test", "--run"]
+
 FROM deps AS build
 COPY . .
 RUN pnpm build

@@ -429,9 +429,11 @@ recovery is deliberately absent from HTTP and runs as
 `python -m applypilot.cli.reset_password` inside the API container.
 
 The worker remains lifecycle-only; U-016 remains unresolved and no job
-mechanism is implied. The explicit Compose `test` profile builds a test-only
-API image and uses an unpublished tmpfs PostgreSQL instance, preserving the
-production image and live named volume.
+mechanism is implied. The explicit Compose `test` profile builds unpublished
+`web-test`, `api-test`, and `worker-test` images plus a tmpfs PostgreSQL
+instance. Production web remains the standalone runner, API and worker
+production images stay free of lint/test tooling, and tests never use the live
+named volume.
 
 Alembic revision `20260902_0002_candidate_facts` adds the candidate record
 foundation. FastAPI owns profile persistence, immutable candidate-fact values,

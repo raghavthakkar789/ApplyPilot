@@ -5,6 +5,7 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      target: runner
     environment:
       API_INTERNAL_URL: http://api:8000
       HOSTNAME: 0.0.0.0
@@ -81,10 +82,33 @@ services:
     networks: [private]
     command: ["sh", "-c", "alembic upgrade head && pytest -q -p no:cacheprovider"]
 
+  web-test:
+    profiles: [test]
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: test
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+    networks: [private]
+    command: ["pnpm", "test", "--run"]
+
+  worker-test:
+    profiles: [test]
+    build:
+      context: ./apps/worker
+      dockerfile: Dockerfile
+      target: test
+    environment:
+      APP_ENV: test
+    networks: [private]
+    command: ["pytest", "-q", "-p", "no:cacheprovider"]
+
   worker:
     build:
       context: ./apps/worker
       dockerfile: Dockerfile
+      target: runtime
     environment:
       APP_ENV: ${APP_ENV:-development}
     depends_on:
