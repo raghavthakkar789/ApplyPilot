@@ -11,6 +11,7 @@ import { FactorList } from "@/components/matching/factor-list";
 import { MatchSummary } from "@/components/matching/match-summary";
 import { opportunities as initialOpportunities } from "./discover-data";
 import type { DiscoverFilters } from "./discover-types";
+import { SessionExpiryWarning } from "@/components/auth/session-expiry-warning";
 
 const emptyFilters: DiscoverFilters = {
   query: "",
@@ -66,6 +67,7 @@ export function DiscoverWorkspace() {
 
   return (
     <AppShell>
+      <SessionExpiryWarning />
       <main className="workspace">
         <header className="workspace-header">
           <div>

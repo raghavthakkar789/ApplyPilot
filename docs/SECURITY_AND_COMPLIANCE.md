@@ -98,15 +98,12 @@ fixtures or snapshots.
 - Raw session and CSRF values never enter Web Storage, URLs, JavaScript-readable
   state, application logs, audit payloads, or full browser fingerprints.
 
-**Recommended implementation parameters still pending review**
-
-- Argon2id parameters should be benchmarked on the owner's computer to target
-  approximately 250–500 ms per interactive hash while maintaining meaningful
-  memory cost; record the selected values in `docs/DECISIONS.md`.
-- Use constant-time comparison where applicable.
-
-The Argon2id benchmark target remains a recommended default, not an accepted
-parameter decision.
+**Implemented password parameters:** D-023 accepts Argon2id with 65,536 KiB
+memory, time cost 8, parallelism 2, 32-byte hash, and 16-byte salt. The
+Docker-based benchmark averaged approximately 289 ms on the owner's Fedora
+machine. Password input is length-focused: 12–1024 characters, no composition
+rule, no truncation, and double entry during initialization and recovery.
+Verifier comparison uses the Argon2 library's safe verification path.
 
 ### Login and request throttling
 

@@ -10,13 +10,16 @@ class Base(DeclarativeBase):
     pass
 
 
+engine = create_engine(get_settings().database_url, pool_pre_ping=True)
+SessionFactory = sessionmaker(bind=engine, expire_on_commit=False)
+
+
 def build_session_factory() -> sessionmaker[Session]:
-    engine = create_engine(get_settings().database_url, pool_pre_ping=True)
-    return sessionmaker(bind=engine, expire_on_commit=False)
+    return SessionFactory
 
 
 def get_database_session() -> Generator[Session]:
-    session = build_session_factory()()
+    session = SessionFactory()
     try:
         yield session
     finally:

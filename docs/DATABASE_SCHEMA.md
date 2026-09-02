@@ -8,8 +8,10 @@ truth uses immutable versions and append-oriented events. Files are stored
 outside the database under protected local storage, with metadata and
 cryptographic digests stored here.
 
-This is a logical schema, not an implementation migration. Names and exact
-types remain subject to review. See [Architecture](ARCHITECTURE.md).
+Most of this document remains the forward-looking logical schema. Section 2's
+M1 authentication subset is implemented by Alembic revision
+`20260902_0001_owner_authentication`; later records remain subject to review.
+See [Architecture](ARCHITECTURE.md).
 
 ## 2. Security and setup records
 
@@ -17,13 +19,12 @@ types remain subject to review. See [Architecture](ARCHITECTURE.md).
 | --- | --- |
 | `installation` | Exactly one row; setup state, schema/application version, initialization timestamp. |
 | `owner_account` | At most one row; login identifier, Argon2id hash, credential version, created/changed timestamps, disabled state. Credential version changes on password reset. |
-| `owner_security_settings` | Session policy. May gain optional TOTP enrollment state in a future migration; M1 requires no TOTP value. |
 | `sessions` | Cryptographic hash of an opaque token with at least 256 bits of source entropy; creation, last activity, idle/absolute expiry, revocation time/reason, credential version, and optional non-sensitive local client label. Raw tokens and full fingerprints are prohibited. Supports authoritative expiry, individual/global revocation, and the three-session cap. |
 | `session_csrf_tokens` | Session-bound cryptographic token hash or equivalent verifier, creation/rotation/expiry metadata; at least 256 bits of source entropy and no raw token in audit data. |
 | `totp_credentials` | Future optional design: encrypted TOTP secret, enrollment and confirmation timestamps. Not created or populated in M1. |
 | `totp_recovery_codes` | Future optional design: individually hashed one-use codes, consumption time, and invalidation time/reason. Not created or populated in M1. |
 | `login_rate_limits` | Durable singleton owner/loopback-context consecutive-failure count, last failure, blocked-until time, and reset metadata implementing D-020's capped exponential backoff across restarts. |
-| `request_rate_limits` | Rolling-window or bucket state for per-session general and expensive operations, initialization attempts, and per-adapter synchronization/coalescing where persistence is needed. |
+| `request_rate_limits` | Deferred logical record for general/expensive-operation and adapter throttles when those operations exist; not created by the authentication migration. |
 | `security_events` | Append-only successful/failed/throttled login, logout, expiry, manual revocation, global invalidation, credential-version invalidation, setup, recovery, credential, and future-TOTP events. Contains time, outcome, reason class, and minimal non-secret metadata; never a password, hash, session/CSRF token, recovery secret, or unnecessary personal data. |
 
 The one-owner rule MUST have a database-enforced singleton constraint and a
@@ -41,6 +42,15 @@ reset alone never changes TOTP state.
 TOTP-compatible tables may be deferred to the future migration that activates
 the feature. If their definitions exist earlier, they must remain optional and
 empty and must not cause dormant routes or behavior to exist.
+
+The implemented singleton constraints require `installation.id = 1` and
+`owner_account.id = 1`; primary keys and check constraints therefore enforce
+exactly one installation row and at most one owner row. Initialization also
+locks the singleton transaction and takes a PostgreSQL transaction-scoped
+advisory lock, so concurrent requests cannot create a second owner. Unique
+indexes cover session and CSRF token hashes. Session foreign keys cascade CSRF
+verifier cleanup, while owner deletion is restricted. Security events expose
+no application update/delete path and are append-only in service behavior.
 
 Session creation occurs only after successful authentication. Database/service
 constraints enforce 60-minute idle and 12-hour absolute expiry, credential-

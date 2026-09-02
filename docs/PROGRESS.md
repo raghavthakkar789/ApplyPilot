@@ -5,7 +5,8 @@
 - **Date:** 2026-09-02 (Asia/Kolkata)
 - **Phase:** Milestone 1 foundation in progress
 - **Overall status:** Foundational documentation and the M1 design direction are
-  owner-approved. The service scaffold and first synthetic Discover slice are implemented.
+  owner-approved. The service scaffold, synthetic Discover slice, and M1 owner
+  authentication foundation are implemented.
 - **Technical blockers:** None.
 - **Decision blockers:** The unresolved decisions in
   [Decisions](DECISIONS.md) block their identified future milestones.
@@ -77,6 +78,11 @@ No remaining unresolved decision blocks the M1 foundation.
   master/detail layout, evidence-first matching UI, accessible states, and
   preparation-only action boundary. Mock identities, jobs, scores, dates, and
   eligibility claims remain synthetic rather than product data.
+- Accepted D-023 and implemented M1 owner security: atomic singleton setup,
+  Argon2id password authentication, hash-only opaque sessions, session-bound
+  CSRF, persistent login backoff, logout/revocation, session inspection, and
+  local-shell password recovery. The accepted Argon2id parameters benchmark at
+  approximately 289 ms in the pinned API container.
 - Drafted the foundational documentation set:
   - [Repository instructions](../AGENTS.md)
   - [Product Requirements](PRODUCT_REQUIREMENTS.md)
@@ -93,14 +99,15 @@ No remaining unresolved decision blocks the M1 foundation.
 - Service-separated Next.js, FastAPI, worker, and PostgreSQL Compose scaffold
 - D-022 Discover workspace using synthetic typed fixtures only
 - Same-origin `/api` proxy and safe API live/ready health endpoints
-- SQLAlchemy and Alembic foundations without persistence models or revisions
+- Alembic authentication migration with `installation`, `owner_account`,
+  `sessions`, `session_csrf_tokens`, `login_rate_limits`, and `security_events`
+- Accessible setup and login screens, protected Discover route, logout,
+  five-minute expiry warning, and session inspection/revocation UI
 - Lifecycle-only worker without a queue or U-016 mechanism
 - Separate frontend, API, and worker test suites
 
 ## Not started
 
-- Authentication and owner initialization
-- Database persistence models and migration revisions
 - External-source integration
 - Deployment beyond the local Compose runtime
 
@@ -109,8 +116,12 @@ No remaining unresolved decision blocks the M1 foundation.
 - `git diff --check` passed.
 - Frontend formatting, lint, strict TypeScript, seven unit/accessibility tests,
   and production build pass.
-- API Ruff, mypy, four pytest tests, Alembic history/import, and application
-  import pass.
+- API Ruff, mypy, Alembic history/import, and application import pass. The API
+  suite now has 19 passing tests, including
+  the 20-request initialization race, expiry, CSRF, throttling, recovery, and
+  redaction coverage.
+- Frontend authentication and Discover suites pass 14 tests, including basic
+  axe checks and browser-storage safeguards.
 - Worker Ruff, mypy, and its lifecycle test pass.
 - Compose configuration confirms one default loopback host publication and no
   floating image tags. Container build, health, visual QA, and final repository
@@ -130,7 +141,7 @@ No remaining unresolved decision blocks the M1 foundation.
 
 ## Exact next recommended task
 
-Implement the accepted single-owner initialization and session foundation in a
-separate reviewed slice. Preserve all still-unresolved decisions; do not add an
-AI provider, external submission, source scraping, public hosting, or a worker
-queue.
+Complete the remaining M1 foundation controls, beginning with general and
+expensive-operation request throttling plus initialization-attempt throttling.
+Preserve all still-unresolved decisions; do not add an AI provider, external
+submission, source scraping, public hosting, or a worker queue.

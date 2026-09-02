@@ -26,13 +26,14 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
+      target: runtime
     environment:
       APP_ENV: ${APP_ENV:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://applypilot:replace-with-a-local-random-password@postgres:5432/applypilot}
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-m", "applypilot.healthcheck"]
       interval: 10s
@@ -46,6 +47,7 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
+      target: runtime
     environment:
       APP_ENV: development
       LOG_LEVEL: DEBUG
@@ -53,9 +55,24 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
-      postgres:
+      migrate:
+        condition: service_completed_successfully
+    networks: [private]
+
+  api-test:
+    profiles: [test]
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: test
+    environment:
+      APP_ENV: test
+      DATABASE_URL: postgresql+psycopg://applypilot_test:test-only-password@postgres-test:5432/applypilot_test
+    depends_on:
+      postgres-test:
         condition: service_healthy
     networks: [private]
+    command: ["sh", "-c", "alembic upgrade head && pytest -q -p no:cacheprovider"]
 
   worker:
     build:
@@ -73,6 +90,21 @@ services:
       retries: 3
     networks: [private]
 
+  migrate:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: runtime
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://applypilot:replace-with-a-local-random-password@postgres:5432/applypilot}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [private]
+
   postgres:
     image: postgres:17.4-bookworm
     environment:
@@ -84,6 +116,22 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [private]
+
+  postgres-test:
+    profiles: [test]
+    image: postgres:17.4-bookworm
+    environment:
+      POSTGRES_DB: applypilot_test
+      POSTGRES_USER: applypilot_test
+      POSTGRES_PASSWORD: test-only-password
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U applypilot_test -d applypilot_test"]
+      interval: 2s
       timeout: 3s
       retries: 20
     networks: [private]

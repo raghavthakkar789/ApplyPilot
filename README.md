@@ -1,6 +1,6 @@
 # ApplyPilot
 
-ApplyPilot is a private, single-owner job discovery and application-preparation tool. The current Milestone 1 scaffold provides a synthetic Discover workspace, a FastAPI health boundary, an independent lifecycle-only worker, and private PostgreSQL infrastructure. Preparation never submits an application.
+ApplyPilot is a private, single-owner job discovery and application-preparation tool. The current Milestone 1 foundation provides atomic owner setup, password authentication, server-managed sessions, a protected synthetic Discover workspace, a FastAPI boundary, an independent lifecycle-only worker, and private PostgreSQL infrastructure. Preparation never submits an application.
 
 ## Requirements
 
@@ -40,6 +40,9 @@ git --version
    ```
 
 5. Open `http://127.0.0.1:3000` in the local browser.
+
+   On the first run, create the one local owner at `/setup`. Setup is permanently
+   disabled after it succeeds. Later visits use `/login`.
 
 6. Confirm the services are healthy:
 
@@ -119,6 +122,23 @@ Do not run a data-altering migration until its required pre-migration encrypted 
 
 Native Fedora execution may be used for debugging, but it is not a separately supported or acceptance-tested runtime.
 
+## Owner access and password recovery
+
+Authentication uses a host-only HTTP-only session cookie. Do not copy browser
+cookies, CSRF values, `.env`, or database credentials into commands, logs, or
+Git. There is no web, email, or remote forgot-password flow.
+
+If the owner password is lost, run the local-shell recovery command from the
+repository root. It prompts twice using hidden input, changes the verifier
+atomically, increments the credential version, and revokes every session:
+
+```bash
+docker compose run --rm api python -m applypilot.cli.reset_password
+```
+
+The command requires the database service to be running and authorized access
+to the local Fedora account and ApplyPilot runtime.
+
 ## Service boundaries
 
 - `apps/web`: Next.js 16.3.4, React 19.2.8, TypeScript 5.9.3, Tailwind CSS 4.3.3, Node.js 22.23.1, pnpm 10.6.5.
@@ -129,6 +149,13 @@ Native Fedora execution may be used for debugging, but it is not a separately su
 
 ## Validation
 
-Use `make check` for the static and unit checks and `docker compose config` for Compose validation. Individual commands are documented in the Makefile. Docker Compose remains the canonical setup, build, and runtime interface.
+Use `make check` for static and unit checks and `docker compose config` for
+Compose validation. Backend tests use the `test` profile and an unpublished,
+tmpfs-backed PostgreSQL test service; they never target the live named volume.
+Individual commands are documented in the Makefile. Docker Compose remains the
+canonical setup, build, migration, recovery, and runtime interface.
 
-Authentication, persistence models, source adapters, AI generation, background jobs, external submission, and real candidate data are intentionally absent from this slice. See [Progress](docs/PROGRESS.md) and [Roadmap](docs/DEVELOPMENT_ROADMAP.md).
+Job persistence, source adapters, AI generation, background jobs, external
+submission, TOTP/MFA, and real candidate data are intentionally absent from
+this slice. See [Progress](docs/PROGRESS.md) and
+[Roadmap](docs/DEVELOPMENT_ROADMAP.md).

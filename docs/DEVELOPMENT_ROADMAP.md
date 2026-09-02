@@ -24,7 +24,13 @@ Acceptance criteria:
 
 ## M1 — Local foundation and owner security
 
-**Current status (2026-09-02): in progress.** The service-separated Compose scaffold, synthetic D-022 Discover slice, API health boundary, lifecycle-only worker, and their initial tests are implemented. Authentication, owner initialization, persistence migrations/models, and the remaining M1 acceptance work are not implemented.
+**Current status (2026-09-02): in progress.** The service-separated Compose
+scaffold, synthetic D-022 Discover slice, API health boundary, lifecycle-only
+worker, atomic owner initialization, password authentication, hashed sessions,
+CSRF, persistent login throttling, session management, local-shell recovery,
+and their focused tests are implemented. Backup/restore, retention/deletion,
+document storage, general request throttling, and the remaining M1 acceptance
+work are not implemented.
 
 After explicit approval, establish the Docker-based Next.js, FastAPI, and
 PostgreSQL environment, protected storage boundary, first-run setup, login,
@@ -108,9 +114,9 @@ Acceptance criteria:
   claim is exposed in M1.
 - Secret scanning reports no committed secrets or private data.
 
-Session parameters are accepted in D-020. The exact password-recovery command
-name and implementation structure will be finalized during this milestone
-without changing the accepted security behavior.
+Session parameters remain accepted in D-020. D-023 records the benchmarked
+Argon2id parameters. The implemented recovery command is
+`docker compose run --rm api python -m applypilot.cli.reset_password`.
 
 ## M2 — Candidate record and documents
 

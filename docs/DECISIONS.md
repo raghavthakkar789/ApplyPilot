@@ -414,13 +414,31 @@ must remain in the log with a link to the replacing decision.
   evidence, and error states. Design QA, keyboard operation, and WCAG 2.2 AA are
   required before handoff.
 
+### D-023 — M1 Argon2id implementation parameters
+
+- **Status:** Accepted implementation decision
+- **Measurement:** Benchmarked through Docker Compose on the owner's Fedora
+  computer using Python 3.13.15, `argon2-cffi` 23.1.0, and the pinned API
+  container. Five interactive hashes at 65,536 KiB memory, time cost 8, and
+  parallelism 2 measured approximately 167, 313, 332, 249, and 382 ms (about
+  289 ms mean). Time cost 4 averaged about 127 ms and was rejected as below the
+  accepted 250–500 ms target.
+- **Parameters:** Argon2id; memory cost 65,536 KiB; time cost 8; parallelism 2;
+  hash length 32 bytes; salt length 16 bytes. The encoded verifier stores its
+  algorithm and parameters in PostgreSQL; no plaintext password is stored.
+- **Password input:** 12-character minimum, 1,024-character maximum, no
+  composition requirement, no silent truncation, and confirmation during
+  setup and local-shell recovery.
+- **Review trigger:** Re-benchmark after a material host/container hardware or
+  runtime change. Any parameter change is a new documented decision and uses
+  verifier rehashing after a successful authentication; it does not weaken
+  D-020.
+
 ## Recommended defaults awaiting acceptance
 
 - D-R01: Modular monolith with a PostgreSQL-backed worker when asynchronous
   work becomes necessary.
 - D-R02: Protected local filesystem for documents.
-- D-R05: Benchmark Argon2id locally for an approximately 250–500 ms interactive
-  hash, then record exact parameters.
 - D-R06: Safest approval behavior: any uncertain materiality or retry requires
   a new review and Final Apply approval.
 
