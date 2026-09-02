@@ -92,24 +92,26 @@ backup-format/schema versions, outcome, and non-secret correlation metadata.
 
 | Record | Purpose and key constraints |
 | --- | --- |
-| `candidate_profile_versions` | Immutable snapshots of structured profile state. |
-| `candidate_facts` | Canonical identity with semantic key and optional scope; no mutable factual value. |
-| `candidate_fact_versions` | Immutable typed value and initial lifecycle state; source type/ID/version; extraction method/confidence; creation/supersession metadata; sensitivity and reconfirmation policy; integrity hash. |
+| `candidate_profiles` | Implemented singleton structured profile; section updates are timestamped and audited. Application-time snapshots remain future work. |
+| `candidate_fact_identities` | Implemented canonical identity with owner, fact type, semantic key, scope, and creation time; unique owner/key/scope and no factual value. |
+| `candidate_fact_versions` | Implemented unique identity/version rows with typed value, lifecycle projection, provenance, extraction metadata, confirmation/supersession/revocation data, sensitivity, reconfirmation policy/due time, and integrity hash. A trigger prevents in-place value/identity/version/hash changes. |
 | `candidate_preferences_versions` | Worldwide mode; included/excluded/preferred countries/cities; remote mode; relocation; timezones; sponsorship; employment types; minimum compensation by currency; language requirements; desired roles/skills/seniority. |
 | `documents` | Logical resume or generated artifact identity and classification. |
 | `document_versions` | Safe storage identifier, media type, size, digest, creation source/time, scan status, and derivation metadata. |
-| `fact_evidence` | Links a fact version to source/document version and evidence location/citation. Evidence never verifies a fact. |
-| `fact_confirmation_events` | Owner confirmation/reconfirmation action, fact version, time, policy/context, and audit correlation. |
-| `fact_lifecycle_events` | Append-only state transitions with time, reason, owner/system cause, revocation metadata, and audit correlation; provides the effective current state without rewriting the version. |
-| `fact_conflicts` | Semantic key/scope, lifecycle, detection time, affected drafts, resolution time/reason, and owner action. |
-| `fact_conflict_members` | Exact competing fact-version IDs and provenance. |
+| `candidate_fact_evidence` | Implemented links from exact fact versions to source identifiers/versions and citations. Evidence never verifies a fact. |
+| `candidate_fact_confirmations` | Implemented owner verification/reconfirmation/conflict-resolution action, exact version, owner, and time. |
+| `candidate_fact_lifecycle_events` | Implemented append-only transition history with event, reason, and time. |
+| `candidate_fact_conflicts` | Implemented same-key overlapping-scope conflict, detection/status, and owner resolution time/reason. |
+| `candidate_fact_conflict_members` | Implemented exact competing version membership without destructive cascades. |
 | `inferred_matching_signals` | Separate labelled inference, evidence, method/model, confidence, and validity; never a candidate fact or submission input. |
 
 States are `unverified`, `verified`, `stale`, `conflicted`, and `revoked`.
 Database transition constraints and service authorization permit only explicit
 owner confirmation to produce `verified`. Editing produces a new unverified
-version. Versions are never updated; lifecycle changes, confirmation,
-reconfirmation, staleness, conflict, supersession, and revocation append events.
+version. Typed values and identity/version/hash fields are never updated.
+Lifecycle projections change only alongside append-only confirmation or
+lifecycle records. Confirmation, reconfirmation, staleness, conflict,
+supersession, and revocation append events.
 The effective state is derived or transactionally projected from that event
 history while the immutable version and every prior transition remain intact.
 

@@ -5,8 +5,9 @@
 - **Date:** 2026-09-02 (Asia/Kolkata)
 - **Phase:** Milestone 1 foundation in progress
 - **Overall status:** Foundational documentation and the M1 design direction are
-  owner-approved. The service scaffold, synthetic Discover slice, and M1 owner
-  authentication foundation are implemented.
+  owner-approved. The service scaffold, synthetic Discover slice, M1 owner
+  authentication, structured profile, and verified-fact lifecycle foundations
+  are implemented.
 - **Technical blockers:** None.
 - **Decision blockers:** The unresolved decisions in
   [Decisions](DECISIONS.md) block their identified future milestones.
@@ -105,23 +106,33 @@ No remaining unresolved decision blocks the M1 foundation.
   five-minute expiry warning, and session inspection/revocation UI
 - Lifecycle-only worker without a queue or U-016 mechanism
 - Separate frontend, API, and worker test suites
+- Forward candidate-record migration with singleton profile, stable fact
+  identities, immutable version values, confirmations, lifecycle events,
+  evidence, conflicts, and conflict membership
+- Authenticated, CSRF-protected profile/fact/conflict routes with explicit
+  verification, reconfirmation, revocation, and owner-only resolution
+- Protected Profile and Evidence destinations with structured editing,
+  provenance/history, lifecycle text, due dates, and deliberate dialogs
 
 ## Not started
 
 - External-source integration
 - Deployment beyond the local Compose runtime
+- Resume upload/parsing, AI extraction, inferred signals, matching,
+  application persistence/generation, and external submission
 
 ## Scaffold validation completed
 
 - `git diff --check` passed.
-- Frontend formatting, lint, strict TypeScript, seven unit/accessibility tests,
+- Frontend formatting, lint, strict TypeScript, 19 unit/accessibility tests,
   and production build pass.
 - API Ruff, mypy, Alembic history/import, and application import pass. The API
-  suite now has 19 passing tests, including
+  suite now has 29 passing tests, including
   the 20-request initialization race, expiry, CSRF, throttling, recovery, and
   redaction coverage.
-- Frontend authentication and Discover suites pass 14 tests, including basic
-  axe checks and browser-storage safeguards.
+- Frontend authentication, Discover, Profile, and Evidence suites pass 19
+  tests, including basic axe checks, lifecycle dialogs, CSRF mutation headers,
+  and browser-storage safeguards.
 - Worker Ruff, mypy, and its lifecycle test pass.
 - Compose configuration confirms one default loopback host publication and no
   floating image tags. Container build, health, visual QA, and final repository

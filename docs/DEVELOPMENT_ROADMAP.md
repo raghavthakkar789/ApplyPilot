@@ -28,7 +28,8 @@ Acceptance criteria:
 scaffold, synthetic D-022 Discover slice, API health boundary, lifecycle-only
 worker, atomic owner initialization, password authentication, hashed sessions,
 CSRF, persistent login throttling, session management, local-shell recovery,
-and their focused tests are implemented. Backup/restore, retention/deletion,
+their focused tests, and the candidate profile/verified-fact foundation are
+implemented. Backup/restore, retention/deletion,
 document storage, general request throttling, and the remaining M1 acceptance
 work are not implemented.
 
@@ -122,6 +123,14 @@ Argon2id parameters. The implemented recovery command is
 
 Implement versioned profile, preferences, resume storage/extraction, explicit
 fact confirmation, and provenance.
+
+**Current status: partially implemented.** Structured profile sections,
+candidate-fact identities and immutable values, explicit verification,
+30/90-day and per-application reconfirmation boundaries, provenance,
+revocation, overlap conflict detection/resolution, protected-trait collection
+guards, audit events, and Profile/Evidence UI are implemented. Resume files,
+document versions, parsing/import, inferred signals, and application-bound
+attestation remain deferred within M2 or later accepted milestones.
 
 Acceptance criteria:
 

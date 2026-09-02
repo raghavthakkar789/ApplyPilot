@@ -4,7 +4,14 @@ from sqlalchemy.orm import Session
 
 from applypilot.models.security_event import SecurityEvent
 
-ALLOWED_METADATA = {"reason", "revoked_count", "client_label"}
+ALLOWED_METADATA = {
+    "reason",
+    "revoked_count",
+    "client_label",
+    "fact_identity_id",
+    "fact_version_id",
+    "conflict_id",
+}
 
 
 class SecurityRepository:

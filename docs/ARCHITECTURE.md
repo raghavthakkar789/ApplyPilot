@@ -432,3 +432,18 @@ The worker remains lifecycle-only; U-016 remains unresolved and no job
 mechanism is implied. The explicit Compose `test` profile builds a test-only
 API image and uses an unpublished tmpfs PostgreSQL instance, preserving the
 production image and live named volume.
+
+Alembic revision `20260902_0002_candidate_facts` adds the candidate record
+foundation. FastAPI owns profile persistence, immutable candidate-fact values,
+explicit verification/reconfirmation, revocation, overlap-based conflict
+detection, owner resolution, provenance, and redacted audit writes. A database
+trigger rejects in-place changes to fact identity, version number, typed value,
+or integrity hash. Row locks plus uniqueness constraints serialize concurrent
+version creation.
+
+The authenticated API adds `/api/profile`, `/api/candidate-facts`, version and
+lifecycle actions, and `/api/candidate-fact-conflicts`. Every mutation uses
+D-020 session, CSRF, Host, and exact-Origin enforcement. Next.js renders the
+protected `/profile` and `/evidence` destinations and never decides fact
+eligibility. Broad lists suppress private, eligibility, and highly sensitive
+values; exact authenticated detail is fetched for deliberate inspection.

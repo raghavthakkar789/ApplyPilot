@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Bookmark,
   BriefcaseBusiness,
@@ -7,25 +9,27 @@ import {
   SlidersHorizontal,
   UserRound,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const items = [
-  ["Discover", Compass],
-  ["Saved", Bookmark],
-  ["Applications", BriefcaseBusiness],
-  ["Evidence", FileCheck2],
-  ["Profile", UserRound],
-  ["Preferences", SlidersHorizontal],
-  ["Settings", Settings],
+  ["Discover", Compass, "/"],
+  ["Saved", Bookmark, "#saved"],
+  ["Applications", BriefcaseBusiness, "#applications"],
+  ["Evidence", FileCheck2, "/evidence"],
+  ["Profile", UserRound, "/profile"],
+  ["Preferences", SlidersHorizontal, "#preferences"],
+  ["Settings", Settings, "#settings"],
 ] as const;
 
 export function SidebarNav() {
+  const pathname = usePathname();
   return (
     <nav aria-label="Primary navigation" className="sidebar-nav">
-      {items.map(([label, Icon], index) => (
+      {items.map(([label, Icon, href]) => (
         <a
           key={label}
-          href={index === 0 ? "/" : `#${label.toLowerCase()}`}
-          aria-current={index === 0 ? "page" : undefined}
+          href={href}
+          aria-current={pathname === href ? "page" : undefined}
           title={label}
         >
           <Icon aria-hidden="true" size={20} />

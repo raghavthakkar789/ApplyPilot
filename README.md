@@ -1,6 +1,6 @@
 # ApplyPilot
 
-ApplyPilot is a private, single-owner job discovery and application-preparation tool. The current Milestone 1 foundation provides atomic owner setup, password authentication, server-managed sessions, a protected synthetic Discover workspace, a FastAPI boundary, an independent lifecycle-only worker, and private PostgreSQL infrastructure. Preparation never submits an application.
+ApplyPilot is a private, single-owner job discovery and application-preparation tool. The current foundation provides atomic owner setup, password authentication, server-managed sessions, a structured candidate profile, explicit verified-fact lifecycle and evidence views, a protected synthetic Discover workspace, a FastAPI boundary, an independent lifecycle-only worker, and private PostgreSQL infrastructure. Preparation never submits an application.
 
 ## Requirements
 
@@ -156,6 +156,6 @@ Individual commands are documented in the Makefile. Docker Compose remains the
 canonical setup, build, migration, recovery, and runtime interface.
 
 Job persistence, source adapters, AI generation, background jobs, external
-submission, TOTP/MFA, and real candidate data are intentionally absent from
+submission, resume upload/parsing, TOTP/MFA, and real candidate data are intentionally absent from
 this slice. See [Progress](docs/PROGRESS.md) and
 [Roadmap](docs/DEVELOPMENT_ROADMAP.md).

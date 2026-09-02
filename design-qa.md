@@ -8,3 +8,24 @@
 - Interaction checks: selection, search, role/skill/location/source filters, sorting, save/unsave, mobile navigation/filter toggles, Back navigation, and preparation notice.
 - Remaining issues: P3 only — the synthetic evidence copy produces slightly taller cards than the reference concept, intentionally preserving all accepted evidence categories without truncation.
 - final result: passed
+
+## Candidate Profile and Evidence QA
+
+- Reference viewport: D-022 editorial workspace and sidebar contract.
+- Implemented viewports: desktop 1440×1024 and mobile 390×844.
+- Workflows: protected Profile editing; Evidence list/detail; unverified fact
+  entry; explicit verification; immutable-version edit warning; reconfirmation;
+  reason-required revocation; conflict inspection and explicit resolution.
+- Accessibility: semantic main/sections/dialogs, text lifecycle labels, visible
+  focus, keyboard-operable controls, minimum touch targets, and automated axe
+  coverage for the profile editor.
+- Privacy: synthetic records only; no demographic collection form; private and
+  eligibility values are suppressed from broad list responses.
+- Browser verification: production build inspected with synthetic API responses
+  at 1440×1024 and 390×844. Profile and Evidence rendered without horizontal
+  overflow; fact selection, verification confirmation, and competing-value
+  conflict dialog were exercised. Browser console reported zero errors or
+  warnings after the verified navigation.
+- Remaining issues: P3 only — mobile uses a stacked evidence list/detail rather
+  than animated master/detail transitions; no information is removed.
+- final result: passed

@@ -369,6 +369,14 @@ within 30 days after draft abandonment; submitted answers follow the five-year
 application default, remain visibly marked, and can be owner-deleted with
 displayed integrity dependencies. Never collect them speculatively.
 
+The implemented candidate API requires authentication for every read and D-020
+CSRF plus exact Origin validation for every mutation. Broad evidence lists omit
+private, eligibility, and highly sensitive values. Profile rejects ordinary
+collection of named protected-trait fact types; no matching or ranking path is
+present. Audit metadata contains only allowlisted identifiers and reason
+categories, never typed fact values. Candidate entry remains unverified until
+the separate owner verification action succeeds.
+
 ### Retention and deletion safety
 
 Automatic cleanup begins with a dry-run report, preserves pins/holds and stricter
