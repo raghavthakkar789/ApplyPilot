@@ -114,25 +114,43 @@ No remaining unresolved decision blocks the M1 foundation.
 - Protected Profile and Evidence destinations with structured editing,
   provenance/history, lifecycle text, due dates, and deliberate dialogs
 
+## Resume ingestion foundation (2026-09-02)
+
+- Added Alembic revision `20260902_0003` for resume identities, immutable
+  versions, stored-document digests, extractions, review candidates, and
+  document lifecycle events.
+- Added API-only protected local storage backed by the `document-data` named
+  volume, deterministic PDF/DOCX/UTF-8 parsing under D-024, authorized
+  downloads, duplicate detection, and trash/restore/deletion paths.
+- Added authenticated resume and candidate-review APIs. Candidate acceptance
+  produces only an unverified D-015 fact; explicit verification remains in
+  Evidence.
+- Added the responsive `/resumes` workspace with version history, warnings,
+  extracted text, review candidates, distinct acceptance/verification messaging,
+  and deletion confirmations.
+- AI/LLM extraction, OCR, matching, source adapters, asynchronous worker jobs,
+  application generation, and external submission remain unimplemented.
+
 ## Not started
 
 - External-source integration
 - Deployment beyond the local Compose runtime
-- Resume upload/parsing, AI extraction, inferred signals, matching,
-  application persistence/generation, and external submission
+- AI extraction, inferred signals, matching, application persistence/generation,
+  and external submission
 
 ## Scaffold validation completed
 
 - `git diff --check` passed.
-- Frontend formatting, lint, strict TypeScript, 19 unit/accessibility tests,
+- Frontend formatting, lint, strict TypeScript, 25 unit/accessibility tests,
   and production build pass.
 - API Ruff, mypy, Alembic history/import, and application import pass. The API
-  suite now has 29 passing tests, including
+  suite now has 51 passing tests, including
   the 20-request initialization race, expiry, CSRF, throttling, recovery, and
-  redaction coverage.
-- Frontend authentication, Discover, Profile, and Evidence suites pass 19
-  tests, including basic axe checks, lifecycle dialogs, CSRF mutation headers,
-  and browser-storage safeguards.
+  redaction coverage, plus resume validation, extraction, storage, versioning,
+  candidate-review, authorization, and deletion coverage.
+- Frontend authentication, Discover, Profile, Evidence, and Resumes suites pass
+  25 tests, including basic axe checks, lifecycle dialogs, CSRF mutation
+  headers, and browser-storage safeguards.
 - Worker Ruff, mypy, and its lifecycle test pass.
 - Compose configuration confirms one default loopback host publication and no
   floating image tags. Container build, health, visual QA, and final repository

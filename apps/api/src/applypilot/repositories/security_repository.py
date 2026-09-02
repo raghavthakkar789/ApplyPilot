@@ -11,6 +11,11 @@ ALLOWED_METADATA = {
     "fact_identity_id",
     "fact_version_id",
     "conflict_id",
+    "resume_id",
+    "resume_version_id",
+    "candidate_id",
+    "failure_category",
+    "duplicate",
 }
 
 

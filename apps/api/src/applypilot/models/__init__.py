@@ -33,3 +33,20 @@ __all__ = [
     "SecurityEvent",
     "SessionCsrfToken",
 ]
+from applypilot.models.resume import (
+    DocumentExtraction,
+    DocumentLifecycleEvent,
+    Resume,
+    ResumeFactCandidate,
+    ResumeVersion,
+    StoredDocument,
+)
+
+__all__ = [
+    "DocumentExtraction",
+    "DocumentLifecycleEvent",
+    "Resume",
+    "ResumeFactCandidate",
+    "ResumeVersion",
+    "StoredDocument",
+]

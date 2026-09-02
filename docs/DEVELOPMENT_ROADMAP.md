@@ -128,9 +128,12 @@ fact confirmation, and provenance.
 candidate-fact identities and immutable values, explicit verification,
 30/90-day and per-application reconfirmation boundaries, provenance,
 revocation, overlap conflict detection/resolution, protected-trait collection
-guards, audit events, and Profile/Evidence UI are implemented. Resume files,
-document versions, parsing/import, inferred signals, and application-bound
-attestation remain deferred within M2 or later accepted milestones.
+guards, audit events, and Profile/Evidence UI are implemented. Protected local
+resume storage, immutable PDF/DOCX/TXT versions, deterministic cited extraction,
+explicit unverified candidate review, authorized download, and recoverable
+trash are also implemented. AI/OCR extraction, inferred signals, source import,
+matching, and application-bound attestation remain deferred within M2 or later
+accepted milestones.
 
 Acceptance criteria:
 

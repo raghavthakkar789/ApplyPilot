@@ -14,8 +14,10 @@ def reset_auth_database() -> None:
     with SessionFactory.begin() as database:
         database.execute(
             text(
-                "TRUNCATE session_csrf_tokens, sessions, security_events, "
-                "login_rate_limits, owner_account RESTART IDENTITY CASCADE"
+                "TRUNCATE document_lifecycle_events, resume_fact_candidates, "
+                "document_extractions, resume_versions, resumes, stored_documents, "
+                "session_csrf_tokens, sessions, security_events, login_rate_limits, "
+                "owner_account RESTART IDENTITY CASCADE"
             )
         )
         database.execute(text("UPDATE installation SET initialized_at = NULL WHERE id = 1"))

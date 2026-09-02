@@ -31,6 +31,9 @@ services:
       APP_ENV: ${APP_ENV:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://applypilot:replace-with-a-local-random-password@postgres:5432/applypilot}
+      DOCUMENT_STORAGE_ROOT: /var/lib/applypilot/documents
+    volumes:
+      - document-data:/var/lib/applypilot/documents
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -52,6 +55,9 @@ services:
       APP_ENV: development
       LOG_LEVEL: DEBUG
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://applypilot:replace-with-a-local-random-password@postgres:5432/applypilot}
+      DOCUMENT_STORAGE_ROOT: /var/lib/applypilot/documents
+    volumes:
+      - document-data:/var/lib/applypilot/documents
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -68,6 +74,7 @@ services:
     environment:
       APP_ENV: test
       DATABASE_URL: postgresql+psycopg://applypilot_test:test-only-password@postgres-test:5432/applypilot_test
+      DOCUMENT_STORAGE_ROOT: /tmp/applypilot-test-documents
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -100,6 +107,9 @@ services:
       APP_ENV: ${APP_ENV:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://applypilot:replace-with-a-local-random-password@postgres:5432/applypilot}
+      DOCUMENT_STORAGE_ROOT: /var/lib/applypilot/documents
+    volumes:
+      - document-data:/var/lib/applypilot/documents
     depends_on:
       postgres:
         condition: service_healthy
@@ -143,3 +153,4 @@ networks:
 
 volumes:
   postgres-data:
+  document-data:

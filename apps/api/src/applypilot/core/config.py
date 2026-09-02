@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     api_version: str = "0.1.0"
     allowed_origin: str = "http://127.0.0.1:3000"
     cookie_secure: bool = False
+    document_storage_root: str = "/var/lib/applypilot/documents"
 
     @model_validator(mode="after")
     def validate_transport_boundary(self) -> "Settings":

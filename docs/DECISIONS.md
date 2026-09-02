@@ -434,6 +434,28 @@ must remain in the log with a link to the replacing decision.
   verifier rehashing after a successful authentication; it does not weaken
   D-020.
 
+### D-024 — Resume storage and deterministic parser safety limits
+
+- **Status:** Accepted implementation decision
+- **Scope:** M2 resume-ingestion foundation under D-004 and D-015.
+- **Storage:** Use an API-only protected Docker named volume outside Git with
+  `0700` directories, `0600` files, random internal names, safe temporary files,
+  atomic rename, and SHA-256 content identity. No browser-visible path exists.
+- **Formats and versions:** PDF through PyMuPDF 1.28.2, DOCX through
+  python-docx 1.2.0, multipart ingestion through python-multipart 0.0.32, and
+  strict UTF-8 text through Python 3.13.15's standard library. OCR is absent.
+  Package metadata reports PyMuPDF as AGPL-3.0/commercial dual-licensed,
+  python-docx as MIT, and python-multipart as Apache-2.0; redistribution or a
+  product-scope change requires a fresh license review.
+- **Limits:** 10 MiB upload; 250 PDF pages; 2,000,000 extracted characters;
+  2,000 DOCX entries; 50 MiB DOCX uncompressed content; 100:1 maximum per-entry
+  compression ratio; 15-second fail-closed parser budget.
+- **Boundary:** Deterministic labels may create cited review candidates only.
+  Acceptance calls the existing fact service and creates an ordinary
+  `unverified` version. Verification is a later separate owner action.
+- **Change control:** Raising a limit, adding a format/parser, enabling OCR, or
+  moving storage requires a new accepted decision and security/test review.
+
 ## Recommended defaults awaiting acceptance
 
 - D-R01: Modular monolith with a PostgreSQL-backed worker when asynchronous

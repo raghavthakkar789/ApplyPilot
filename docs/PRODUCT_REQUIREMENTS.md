@@ -134,6 +134,15 @@ dates, and affected drafts. Only the owner may select/reconfirm a value, provide
 a corrected value, define non-overlapping scopes, or revoke obsolete versions;
 the reason and result are audited.
 
+Resume ingestion uses protected local storage outside Git. M1/M2 accepts only
+PDF, DOCX, and UTF-8 plain text under D-024's tested safety limits. Originals
+and resume versions are immutable; duplicate content preserves separate
+provenance. Extraction is deterministic, cited, and never runs OCR or active
+content. Any structured extraction is an **Unverified candidate**. Accepting it
+creates an ordinary unverified fact, after which the separate explicit owner
+verification workflow is still required. Authorized downloads use opaque IDs;
+paths and public document URLs are prohibited.
+
 ### 4.3 Job discovery
 
 - Retrieve jobs only through approved, legally and technically supported

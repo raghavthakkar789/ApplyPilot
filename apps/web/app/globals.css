@@ -54,6 +54,240 @@ input:focus-visible {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 35%, transparent);
   border-color: var(--focus) !important;
 }
+
+/* Resume evidence workspace */
+.resume-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.resume-header button,
+.resume-detail-header button,
+.button-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--surface);
+  padding: 0 14px;
+  text-decoration: none;
+}
+.resume-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 34%) minmax(0, 1fr);
+  border-top: 1px solid var(--border);
+}
+.resume-list-pane,
+.resume-detail-pane {
+  min-width: 0;
+  overflow-y: auto;
+}
+.resume-list-pane {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 16px;
+}
+.resume-detail-pane {
+  padding: 24px;
+}
+.resume-mobile-back {
+  display: none;
+}
+.resume-list {
+  display: grid;
+  gap: 8px;
+}
+.resume-row {
+  width: 100%;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 12px;
+  text-align: left;
+}
+.resume-row[aria-pressed="true"] {
+  border-color: var(--link);
+  background: var(--surface-selected);
+}
+.resume-row > span:not(.resume-status) {
+  display: grid;
+  gap: 4px;
+}
+.resume-row small,
+.version-history small {
+  color: var(--text-muted);
+}
+.resume-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.status-succeeded {
+  color: var(--success);
+}
+.status-failed {
+  color: var(--danger);
+}
+.resume-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+.resume-detail-header h2 {
+  color: var(--text-strong);
+  font:
+    600 34px/1.1 "Source Serif 4",
+    Georgia,
+    serif;
+  margin: 4px 0;
+}
+.resume-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.resume-card h3 {
+  color: var(--text-strong);
+  margin: 0 0 10px;
+}
+.version-history {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.version-history li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.version-history li > span:first-child {
+  display: grid;
+  gap: 3px;
+}
+.version-history details {
+  grid-column: 1 / -1;
+}
+.version-history code {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+.extracted-text {
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  border: 1px solid var(--border);
+  background: #f5f7f8;
+  padding: 14px;
+  font:
+    13px/1.6 ui-monospace,
+    monospace;
+}
+.extracted-text section + section {
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.extracted-text pre {
+  margin: 5px 0 0;
+  white-space: pre-wrap;
+  font: inherit;
+}
+.extraction-warning {
+  display: flex;
+  gap: 8px;
+  color: var(--warning);
+}
+.fact-candidate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding: 14px 0;
+}
+.fact-candidate-row h4,
+.fact-candidate-row p {
+  margin: 5px 0;
+}
+.fact-candidate-row button {
+  min-height: 44px;
+}
+
+@media (max-width: 1023px) {
+  .resume-layout {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+  .resume-list-pane {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    overflow: visible;
+  }
+  .resume-detail-pane {
+    overflow: visible;
+  }
+}
+@media (max-width: 767px) {
+  .resume-header,
+  .resume-detail-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .resume-detail-pane {
+    padding: 16px;
+  }
+  .resume-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .resume-row .resume-status {
+    grid-column: 2;
+  }
+  .fact-candidate-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .resume-layout[data-detail-open="true"] .resume-list-pane {
+    display: none;
+  }
+  .resume-layout[data-detail-open="false"] .resume-detail-pane {
+    display: none;
+  }
+  .resume-mobile-back {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: transparent;
+    color: var(--link);
+    padding: 0;
+    margin-bottom: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .resume-workspace * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
 button {
   cursor: pointer;
 }

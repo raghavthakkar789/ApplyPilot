@@ -330,6 +330,24 @@ append a redacted restore security event after successful startup. Complete and
 document one isolated drill before M1 acceptance and repeat it after material
 backup-format or schema changes.
 
+### Implemented resume-ingestion controls
+
+D-024 limits each resume to 10 MiB and accepts only signature-consistent PDF,
+DOCX, or UTF-8 plain text. Requests without a valid bounded Content-Length fail
+closed; streamed file bytes are independently capped. PDF encryption and files
+over 250 pages are rejected. Extraction is capped at 2,000,000 characters.
+DOCX containers are limited to 2,000 entries, 50 MiB uncompressed content, and
+a 100:1 entry compression ratio; traversal, macros, ambiguous containers, and
+unsafe relationships are rejected or ignored with warnings as applicable.
+
+Originals use random names, `0600` files, `0700` directories, atomic rename,
+and SHA-256 integrity metadata in an API-only persistent Docker volume. Supplied
+paths are never trusted, absolute paths never leave the backend, and downloads
+use opaque IDs with `nosniff`, attachment disposition, sandboxing, and
+`no-store`. Logs/audits exclude document text, candidate values, bytes, and
+storage paths. Deterministic parsing never verifies a fact or infers a
+protected trait.
+
 ## 6. External providers and source compliance
 
 Every adapter requires a documented authorization basis, supported access

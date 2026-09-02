@@ -38,7 +38,7 @@ class CandidateFactService:
         self.events = SecurityRepository(database)
 
     def create(
-        self, request: FactCreateRequest
+        self, request: FactCreateRequest, *, commit: bool = True
     ) -> tuple[CandidateFactIdentity, CandidateFactVersion]:
         if request.fact_type in PROTECTED_FACT_TYPES or request.sensitivity == "highly_sensitive":
             raise HTTPException(422, "Protected demographic facts are not collected in Profile.")
@@ -66,11 +66,12 @@ class CandidateFactService:
         versions = self.repository.versions(identity.id)
         version = self._new_version(identity, request, len(versions) + 1, now)
         self._detect_conflicts(identity, version, now)
-        self.database.commit()
+        if commit:
+            self.database.commit()
         return identity, version
 
     def edit(
-        self, identity_id: str, request: FactEditRequest
+        self, identity_id: str, request: FactEditRequest, *, commit: bool = True
     ) -> tuple[CandidateFactIdentity, CandidateFactVersion]:
         identity = self.repository.identity(identity_id, lock=True)
         if identity is None:
@@ -85,7 +86,8 @@ class CandidateFactService:
                 self._lifecycle(versions[0], "fact_marked_stale", request.reason, now)
         version = self._new_version(identity, request, versions[0].version_number + 1, now)
         self._detect_conflicts(identity, version, now)
-        self.database.commit()
+        if commit:
+            self.database.commit()
         return identity, version
 
     def verify(self, version_id: str, reconfirm: bool = False) -> CandidateFactVersion:

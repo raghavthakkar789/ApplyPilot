@@ -447,3 +447,27 @@ D-020 session, CSRF, Host, and exact-Origin enforcement. Next.js renders the
 protected `/profile` and `/evidence` destinations and never decides fact
 eligibility. Broad lists suppress private, eligibility, and highly sensitive
 values; exact authenticated detail is fetched for deliberate inspection.
+
+### Implemented protected resume boundary
+
+Alembic revision `20260902_0003_resume_ingestion` adds resume identities,
+immutable versions, content-addressed stored-document metadata, deterministic
+extractions, unverified review candidates, and append-oriented document events.
+The API container alone mounts the persistent `document-data` volume at
+`/var/lib/applypilot/documents`; web, worker, and PostgreSQL cannot read it.
+Its owner-only `originals`, `extracted`, `temporary`, `quarantine`, and `trash`
+directories use random internal keys. Browser responses never reveal paths.
+
+Upload processing checks request/file size, sanitized display filename,
+extension, declared media type, signature/container structure, encryption,
+archive safety, parser limits, and SHA-256 before atomic final placement.
+PyMuPDF 1.28.2 extracts PDF text by page, python-docx 1.2.0 extracts paragraphs
+and tables, and Python 3.13.15 decodes strict UTF-8 text. No OCR, HTML rendering,
+external relationship traversal, macro execution, or active-content execution
+exists. Temporary input is removed on every success/failure path.
+
+FastAPI exposes authenticated resume metadata/version/extraction, authorized
+download, and candidate-review routes. Every mutation uses D-020 CSRF and exact
+Origin enforcement. Candidate acceptance invokes the existing fact service
+and creates only an `unverified` fact version; the independent Evidence
+verification action remains mandatory.

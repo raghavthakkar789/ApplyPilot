@@ -17,3 +17,5 @@ __pycache__/
 .vscode/
 postgres-data/
 private-documents/
+runtime-data/
+document-storage/

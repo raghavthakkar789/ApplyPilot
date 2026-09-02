@@ -9,6 +9,47 @@
 - Remaining issues: P3 only — the synthetic evidence copy produces slightly taller cards than the reference concept, intentionally preserving all accepted evidence categories without truncation.
 - final result: passed
 
+## Resume Storage and Review QA
+
+- Source visual truth path: `design-source-discover-1440.png`, the existing
+  approved D-022 ApplyPilot shell and editorial workspace rendered from the
+  current production build.
+- Implementation screenshot paths: `implementation-resumes-1440.png` and
+  `applypilot-resumes-mobile-final.png`.
+- Combined comparison evidence: `design-comparison-resumes-1440.png` places the
+  source and implementation together at equal CSS density.
+- Viewports and normalization: desktop source and implementation are each
+  1440×1024 CSS pixels at device scale 1; combined evidence is 2880×1024.
+  Mobile is 390×844 CSS pixels at device scale 1. Browser chrome is excluded.
+- State: authenticated synthetic resume, current immutable version, successful
+  deterministic text extraction, source citation, and no retained real data.
+- Full-view comparison: sidebar width, dark/light balance, serif display type,
+  Inter UI type, blue eyebrow, border/radius tokens, selection treatment, and
+  editorial density remain consistent with the approved shell. Resume-specific
+  content intentionally replaces opportunity scoring and evidence cards.
+- Focused comparison: no separate crop was needed because desktop controls,
+  typography, citations, and state labels remain readable in the equal-density
+  combined image. The mobile screenshot separately verifies action wrapping,
+  evidence stacking, and touch layout.
+- Typography: Source Serif 4 and Inter hierarchy, weights, wrapping, and compact
+  UI labels match the existing shell. Colors/tokens retain navy, teal, blue,
+  warning, danger, canvas, and border semantics. Lucide icons remain sharp and
+  no raster product asset is substituted.
+- Interaction checks: resume selection; upload format/limit messaging; review
+  candidate dialog; separate Accept and Verify language; trash confirmation;
+  source-cited extraction; keyboard-native controls; and desktop/mobile no-
+  overflow checks were exercised. The final browser state reported zero console
+  errors or warnings.
+- Comparison history: the first mobile capture exposed a P2 master/detail issue
+  because list and detail were both visible. The implementation now hides the
+  list after mobile selection and provides a 44px `Back to resumes` action. The
+  post-fix mobile evidence shows the corrected single-column detail state with
+  no horizontal overflow. No P0/P1/P2 issue remains.
+- Follow-up polish: P3 only — a resume with one short version leaves more open
+  list-pane space than dense Discover results; this is an expected content-
+  density difference, not missing information.
+- final result: passed
+
 ## Candidate Profile and Evidence QA
 
 - Reference viewport: D-022 editorial workspace and sidebar contract.

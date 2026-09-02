@@ -96,8 +96,12 @@ backup-format/schema versions, outcome, and non-secret correlation metadata.
 | `candidate_fact_identities` | Implemented canonical identity with owner, fact type, semantic key, scope, and creation time; unique owner/key/scope and no factual value. |
 | `candidate_fact_versions` | Implemented unique identity/version rows with typed value, lifecycle projection, provenance, extraction metadata, confirmation/supersession/revocation data, sensitivity, reconfirmation policy/due time, and integrity hash. A trigger prevents in-place value/identity/version/hash changes. |
 | `candidate_preferences_versions` | Worldwide mode; included/excluded/preferred countries/cities; remote mode; relocation; timezones; sponsorship; employment types; minimum compensation by currency; language requirements; desired roles/skills/seniority. |
-| `documents` | Logical resume or generated artifact identity and classification. |
-| `document_versions` | Safe storage identifier, media type, size, digest, creation source/time, scan status, and derivation metadata. |
+| `resumes` | Implemented owner resume identity, display label/purpose, current-version pointer, archive/trash/purge state, and creation time. |
+| `stored_documents` | Implemented random protected-storage key, detected media type/format, byte size, SHA-256 content identity, integrity state, and deletion time. Paths are never API values. |
+| `resume_versions` | Implemented immutable resume/version allocation and document reference with sanitized filename, parser/version, extraction state, and lifecycle timestamps. Unique `(resume_id, version_number)` and a trigger protect history. |
+| `document_extractions` | Implemented protected text, statistics, warnings, result/failure class, extraction time, and integrity digest for one exact resume version. |
+| `resume_fact_candidates` | Implemented deterministic unverified proposal, exact version citation, method/confidence, review state/time, and resulting unverified fact reference after acceptance. |
+| `document_lifecycle_events` | Implemented append-oriented validation, extraction, duplicate, review, trash, restore, and deletion events with redacted metadata. |
 | `candidate_fact_evidence` | Implemented links from exact fact versions to source identifiers/versions and citations. Evidence never verifies a fact. |
 | `candidate_fact_confirmations` | Implemented owner verification/reconfirmation/conflict-resolution action, exact version, owner, and time. |
 | `candidate_fact_lifecycle_events` | Implemented append-only transition history with event, reason, and time. |
@@ -120,6 +124,13 @@ Eligibility queries reject every state except currently verified and enforce
 semantic key plus overlapping scope. Resolution never uses confidence, recency,
 majority agreement, or a model; it records the owner's selected/corrected/scoped
 or revoked result and reason.
+
+Resume values and originals are immutable after successful ingestion. Duplicate
+bytes may support distinct versions without losing separate provenance. Row
+locking plus the unique version constraint protects allocation. An accepted
+candidate blocks destruction of its evidence; bytes are removed only after the
+last retained version releases them. Candidate acceptance creates a normal
+unverified candidate-fact version and cannot call verification.
 
 ## 4. Jobs and provenance
 

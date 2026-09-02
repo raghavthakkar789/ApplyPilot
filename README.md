@@ -1,6 +1,6 @@
 # ApplyPilot
 
-ApplyPilot is a private, single-owner job discovery and application-preparation tool. The current foundation provides atomic owner setup, password authentication, server-managed sessions, a structured candidate profile, explicit verified-fact lifecycle and evidence views, a protected synthetic Discover workspace, a FastAPI boundary, an independent lifecycle-only worker, and private PostgreSQL infrastructure. Preparation never submits an application.
+ApplyPilot is a private, single-owner job discovery and application-preparation tool. The current foundation provides atomic owner setup, password authentication, server-managed sessions, structured candidate facts, and protected versioned resume ingestion with deterministic PDF, DOCX, and UTF-8 text extraction. Preparation never submits an application.
 
 ## Requirements
 
@@ -52,6 +52,10 @@ git --version
    ```
 
 Only the web service is available on the Fedora host, at `127.0.0.1:3000`. FastAPI, PostgreSQL, and the worker remain private inside Docker networks.
+
+Private resume originals live in the `document-data` Docker volume, outside
+Git and the source tree. Do not copy that volume into the repository. The
+current upload limit is 10 MiB; PDF, DOCX, and UTF-8 `.txt` are supported.
 
 ## Everyday runtime commands
 
@@ -155,7 +159,7 @@ tmpfs-backed PostgreSQL test service; they never target the live named volume.
 Individual commands are documented in the Makefile. Docker Compose remains the
 canonical setup, build, migration, recovery, and runtime interface.
 
-Job persistence, source adapters, AI generation, background jobs, external
-submission, resume upload/parsing, TOTP/MFA, and real candidate data are intentionally absent from
+Job persistence, source adapters, AI/OCR extraction, background jobs, external
+submission, TOTP/MFA, and real candidate data are intentionally absent from
 this slice. See [Progress](docs/PROGRESS.md) and
 [Roadmap](docs/DEVELOPMENT_ROADMAP.md).
