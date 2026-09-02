@@ -63,6 +63,11 @@ Private resume originals live in the `document-data` Docker volume, outside
 Git and the source tree. Do not copy that volume into the repository. The
 current upload limit is 10 MiB; PDF, DOCX, and UTF-8 `.txt` are supported.
 
+The authenticated Discover catalog supports manual jobs and owner-reviewed
+Greenhouse, Lever, and Ashby public boards plus the global Remotive public feed.
+Adapters are discovery-only and never submit applications. Manual URLs are
+stored without fetching, previewing, or scraping them.
+
 ## Everyday runtime commands
 
 ```bash

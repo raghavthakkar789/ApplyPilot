@@ -1,113 +1,155 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DiscoverWorkspace } from "@/features/discover/discover-workspace";
+
+const jobs = [
+  {
+    id: "job-1",
+    title: "Synthetic Platform Engineer",
+    employer: "Example Labs",
+    description: "Build safe systems",
+    location: "Remote",
+    work_mode: "remote",
+    employment_type: "full-time",
+    freshness_state: "fresh",
+    saved: false,
+    created_at: "2026-09-02T00:00:00Z",
+    sources: [
+      {
+        provider: "greenhouse",
+        source_url: "https://boards.greenhouse.io/example/jobs/1",
+        attribution: "Source: Greenhouse",
+        retrieved_at: "2026-09-02T00:00:00Z",
+      },
+    ],
+  },
+  {
+    id: "job-2",
+    title: "Synthetic Support Engineer",
+    employer: "Remote Example",
+    description: "Help customers",
+    location: "Worldwide",
+    work_mode: "remote",
+    employment_type: "contract",
+    freshness_state: "possibly_stale",
+    saved: false,
+    created_at: "2026-09-01T00:00:00Z",
+    sources: [
+      {
+        provider: "remotive",
+        source_url: "https://remotive.com/remote-jobs/software-dev/example-1",
+        attribution: "Source: Remotive",
+        retrieved_at: "2026-09-01T00:00:00Z",
+      },
+    ],
+  },
+  {
+    id: "job-3",
+    title: "Manually Recorded Role",
+    employer: "Sample Company",
+    description: "Owner supplied details",
+    location: null,
+    work_mode: null,
+    employment_type: null,
+    freshness_state: "manually_entered",
+    saved: false,
+    created_at: "2026-09-01T00:00:00Z",
+    sources: [
+      {
+        provider: "manual",
+        source_url: "manual-entry",
+        attribution: "Manually entered — source not automatically verified",
+        retrieved_at: "2026-09-01T00:00:00Z",
+      },
+    ],
+  },
+];
 
 describe("DiscoverWorkspace", () => {
   beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async (_input: RequestInfo | URL, init?: RequestInit) =>
+          new Response(
+            JSON.stringify(
+              init?.method ? jobs[0] : { jobs, partial_failures: [] },
+            ),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      ),
+    );
     render(<DiscoverWorkspace />);
   });
 
-  it("renders the approved Discover page and has no basic axe violations", async () => {
+  it("loads the catalog and has no basic axe violations", async () => {
     expect(
-      screen.getByRole("heading", { name: "Global opportunities" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getAllByText("Senior Platform Engineer").length,
+      (await screen.findAllByText("Synthetic Platform Engineer")).length,
     ).toBeGreaterThan(0);
+    expect(screen.getAllByText("Not evaluated").length).toBeGreaterThan(0);
     expect((await axe(document.body)).violations).toHaveLength(0);
   });
 
-  it("selects an opportunity and exposes eligibility as text", async () => {
+  it("searches and filters API data", async () => {
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", {
-        name: /Developer Experience Engineer at Juniper Works/,
-      }),
-    );
-    expect(
-      screen.getByRole("heading", { name: "Developer Experience Engineer" }),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText("Blocked").length).toBeGreaterThan(0);
-  });
-
-  it("searches fixture data", async () => {
-    const user = userEvent.setup();
+    await screen.findAllByText("Synthetic Platform Engineer");
     await user.type(
       screen.getByRole("textbox", { name: "Search opportunities" }),
-      "Atlas",
+      "Support",
     );
-    const filteredList = screen.getByLabelText("1 opportunities");
     expect(
-      within(filteredList).getByText("Backend Engineer"),
+      within(screen.getByLabelText("1 opportunities")).getByText(
+        "Synthetic Support Engineer",
+      ),
     ).toBeInTheDocument();
-    expect(
-      within(filteredList).queryByText("Senior Platform Engineer"),
-    ).not.toBeInTheDocument();
-  });
-
-  it("saves and unsaves a selected job", async () => {
-    const user = userEvent.setup();
-    const save = screen.getByRole("button", {
-      name: "Save Senior Platform Engineer",
-    });
-    await user.click(save);
-    expect(
-      screen.getByRole("button", { name: "Unsave Senior Platform Engineer" }),
-    ).toHaveAttribute("aria-pressed", "true");
-    await user.click(
-      screen.getByRole("button", { name: "Unsave Senior Platform Engineer" }),
+    await user.clear(
+      screen.getByRole("textbox", { name: "Search opportunities" }),
     );
-    expect(
-      screen.getByRole("button", { name: "Save Senior Platform Engineer" }),
-    ).toHaveAttribute("aria-pressed", "false");
-  });
-
-  it("sorts and filters opportunities", async () => {
-    const user = userEvent.setup();
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Sort opportunities" }),
-      "capability",
-    );
-    const list = screen.getByLabelText("4 opportunities");
-    const rows = within(list).getAllByRole("article");
-    expect(rows[0]).toHaveAccessibleName(/Senior Platform Engineer/);
     await user.selectOptions(
       screen.getByRole("combobox", { name: "Source filter" }),
       "Remotive",
     );
-    const remotiveList = screen.getByLabelText("1 opportunities");
     expect(
-      within(remotiveList).getByText("Cloud Engineering Intern"),
-    ).toBeInTheDocument();
-    expect(
-      within(remotiveList).queryByText("Backend Engineer"),
-    ).not.toBeInTheDocument();
+      screen.getAllByText("Synthetic Support Engineer").length,
+    ).toBeGreaterThan(0);
   });
 
-  it("shows insufficient evidence below forty percent", async () => {
+  it("preserves Remotive and manual attribution", async () => {
     const user = userEvent.setup();
     await user.click(
-      screen.getByRole("button", {
-        name: /Cloud Engineering Intern at Harbor Research/,
+      await screen.findByRole("button", {
+        name: /Synthetic Support Engineer at Remote Example/,
       }),
     );
-    expect(screen.getAllByText("Insufficient evidence").length).toBeGreaterThan(
-      0,
+    expect(screen.getByText("Source: Remotive")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", {
+        name: /Manually Recorded Role at Sample Company/,
+      }),
     );
     expect(
-      screen.getByText("Below 40% capability coverage"),
+      screen.getByText("Manually entered — source not automatically verified"),
     ).toBeInTheDocument();
   });
 
-  it("preparation never submits and primary controls are keyboard operable", async () => {
+  it("saves through a CSRF mutation", async () => {
+    document.cookie = "applypilot_csrf=synthetic-csrf";
     const user = userEvent.setup();
-    const action = screen.getByRole("button", { name: "Prepare application" });
-    action.focus();
-    await user.keyboard("{Enter}");
-    expect(
-      screen.getAllByText("Preparation does not submit an application.").length,
-    ).toBeGreaterThan(0);
+    const save = await screen.findByRole("button", {
+      name: "Save Synthetic Platform Engineer",
+    });
+    await user.click(save);
+    expect(save).toHaveAttribute("aria-pressed", "true");
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/jobs/job-1/save",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "X-ApplyPilot-CSRF": "synthetic-csrf",
+        }),
+      }),
+    );
   });
 });

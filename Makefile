@@ -1,4 +1,17 @@
-.PHONY: setup dev build test lint format security-scan check down logs
+.PHONY: help setup dev build test lint format security-scan check down logs
+
+help:
+	@echo "ApplyPilot commands (Docker Compose is canonical):"
+	@echo "  make setup          Build service images"
+	@echo "  make dev            Start the development stack with builds"
+	@echo "  make build          Build service images"
+	@echo "  make test           Run web, API, and worker tests"
+	@echo "  make lint           Run frontend/API/worker lint and type checks"
+	@echo "  make format         Check or apply repository formatters"
+	@echo "  make security-scan  Check environment and secret boundaries"
+	@echo "  make check          Run lint, tests, and security scan"
+	@echo "  make down           Stop containers without deleting volumes"
+	@echo "  make logs           Follow Compose logs"
 
 setup:
 	docker compose build

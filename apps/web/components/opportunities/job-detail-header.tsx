@@ -25,10 +25,17 @@ export function JobDetailHeader({
           />
           {job.saved ? "Saved" : "Save for later"}
         </button>
-        <a href={job.sourceUrl} target="_blank" rel="noreferrer">
-          Source: {job.source}
-          <ExternalLink aria-hidden="true" size={15} />
-        </a>
+        {job.sourceUrl === "#" ? (
+          <span>
+            {job.attribution ??
+              "Manually entered — source not automatically verified"}
+          </span>
+        ) : (
+          <a href={job.sourceUrl} target="_blank" rel="noreferrer">
+            {job.attribution ?? `Source: ${job.source}`}
+            <ExternalLink aria-hidden="true" size={15} />
+          </a>
+        )}
       </div>
       <p className="eyebrow">
         {job.employer} · {job.source}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, ShieldCheck } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { JobDetailHeader } from "@/components/opportunities/job-detail-header";
 import { OpportunityList } from "@/components/opportunities/opportunity-list";
@@ -9,9 +9,11 @@ import { OpportunityToolbar } from "@/components/opportunities/opportunity-toolb
 import { EvidenceSection } from "@/components/matching/evidence-section";
 import { FactorList } from "@/components/matching/factor-list";
 import { MatchSummary } from "@/components/matching/match-summary";
-import { opportunities as initialOpportunities } from "./discover-data";
+import { loadJobs, setJobSaved } from "./discover-api";
+import type { Opportunity } from "./discover-types";
 import type { DiscoverFilters } from "./discover-types";
 import { SessionExpiryWarning } from "@/components/auth/session-expiry-warning";
+import { ManualJobDialog } from "@/components/manual-jobs/manual-job-dialog";
 
 const emptyFilters: DiscoverFilters = {
   query: "",
@@ -19,46 +21,71 @@ const emptyFilters: DiscoverFilters = {
   skill: "",
   location: "",
   source: "",
+  workMode: "",
+  employmentType: "",
+  freshness: "",
 };
 
 export function DiscoverWorkspace() {
-  const [jobs, setJobs] = useState(initialOpportunities);
-  const [selectedId, setSelectedId] = useState(initialOpportunities[0].id);
+  const [jobs, setJobs] = useState<Opportunity[]>([]);
+  const [selectedId, setSelectedId] = useState("");
   const [filters, setFilters] = useState(emptyFilters);
-  const [sort, setSort] = useState("ranking");
+  const [sort, setSort] = useState("newest");
   const [mobileDetail, setMobileDetail] = useState(false);
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    loadJobs()
+      .then((catalog) => {
+        setJobs(catalog.jobs);
+        setSelectedId(catalog.jobs[0]?.id ?? "");
+        if (catalog.partialFailures.length) {
+          setNotice(catalog.partialFailures.join(" · "));
+        }
+      })
+      .catch(() => setLoadError("The job catalog could not be loaded."))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => {
     const query = filters.query.toLowerCase();
     const rows = jobs.filter(
       (job) =>
         (!query ||
-          `${job.title} ${job.employer} ${job.skills.join(" ")}`
+          `${job.title} ${job.employer} ${job.summary} ${job.skills.join(" ")}`
             .toLowerCase()
             .includes(query)) &&
         (!filters.role || job.roles.includes(filters.role)) &&
         (!filters.skill || job.skills.includes(filters.skill)) &&
         (!filters.location ||
           `${job.location} ${job.workplace}`.includes(filters.location)) &&
-        (!filters.source || job.source === filters.source),
+        (!filters.source || job.source === filters.source) &&
+        (!filters.workMode || job.workplace === filters.workMode) &&
+        (!filters.employmentType ||
+          job.employmentType === filters.employmentType) &&
+        (!filters.freshness || job.freshnessState === filters.freshness),
     );
     return [...rows].sort((a, b) =>
       sort === "newest"
         ? Date.parse(b.publishedAt) - Date.parse(a.publishedAt)
-        : sort === "capability"
-          ? (b.capabilityAlignment ?? -1) - (a.capabilityAlignment ?? -1)
-          : b.rankingScore - a.rankingScore,
+        : a.title.localeCompare(b.title),
     );
   }, [jobs, filters, sort]);
   const selected =
     jobs.find((job) => job.id === selectedId) ?? filtered[0] ?? jobs[0];
-  const toggleSave = (id: string) =>
+  const toggleSave = (id: string) => {
+    const next = !jobs.find((job) => job.id === id)?.saved;
     setJobs((current) =>
       current.map((job) =>
         job.id === id ? { ...job, saved: !job.saved } : job,
       ),
     );
+    void setJobSaved(id, next).catch(() =>
+      setLoadError("Save state could not be updated."),
+    );
+  };
   const select = (id: string) => {
     setSelectedId(id);
     setMobileDetail(true);
@@ -79,6 +106,17 @@ export function DiscoverWorkspace() {
             </p>
           </div>
           <div className="header-meta">
+            <ManualJobDialog
+              onCreated={() => {
+                setLoading(true);
+                loadJobs()
+                  .then((catalog) => {
+                    setJobs(catalog.jobs);
+                    setSelectedId(catalog.jobs[0]?.id ?? "");
+                  })
+                  .finally(() => setLoading(false));
+              }}
+            />
             <time dateTime="2026-09-02">2 September 2026</time>
             <button type="button" aria-label="Workspace options">
               <Menu aria-hidden="true" />
@@ -97,7 +135,7 @@ export function DiscoverWorkspace() {
             <div className="pane-title">
               <span>
                 <strong>{filtered.length} opportunities</strong>
-                <small>Synthetic preview data</small>
+                <small>Authenticated catalog data</small>
               </span>
               {activeCount > 0 && (
                 <button type="button" onClick={() => setFilters(emptyFilters)}>
@@ -105,109 +143,119 @@ export function DiscoverWorkspace() {
                 </button>
               )}
             </div>
+            {loading ? <p role="status">Loading job catalog…</p> : null}
+            {loadError ? <p role="alert">{loadError}</p> : null}
+            {!loading && filtered.length === 0 ? (
+              <p>No jobs match the current catalog filters.</p>
+            ) : null}
             <OpportunityList
               opportunities={filtered}
-              selectedId={selected.id}
+              selectedId={selected?.id ?? ""}
               onSelect={select}
               onSave={toggleSave}
             />
           </section>
-          <article
-            className="detail-pane"
-            aria-label="Selected opportunity detail"
-          >
-            <JobDetailHeader
-              job={selected}
-              onSave={() => toggleSave(selected.id)}
-              onBack={() => setMobileDetail(false)}
-            />
-            <MatchSummary job={selected} />
-            <div className="evidence-grid">
-              <EvidenceSection
-                title="Verified matches"
-                count={selected.verifiedMatches.length}
-              >
-                <FactorList items={selected.verifiedMatches} tone="success" />
-              </EvidenceSection>
-              <EvidenceSection
-                title="Partial matches"
-                count={selected.partialMatches.length}
-              >
-                <FactorList items={selected.partialMatches} tone="warning" />
-              </EvidenceSection>
-              <EvidenceSection
-                title="Missing evidence"
-                count={selected.missingEvidence.length}
-              >
-                <FactorList items={selected.missingEvidence} />
-              </EvidenceSection>
-              <EvidenceSection
-                title="Verified gaps"
-                count={selected.verifiedGaps.length}
-              >
-                <FactorList items={selected.verifiedGaps} tone="danger" />
-              </EvidenceSection>
-              <EvidenceSection
-                title="Uncertainties"
-                count={selected.uncertainties.length}
-              >
-                <FactorList items={selected.uncertainties} tone="warning" />
-              </EvidenceSection>
-              <EvidenceSection
-                title="Confirmed blockers"
-                count={selected.confirmedBlockers.length}
-              >
-                <FactorList items={selected.confirmedBlockers} tone="danger" />
-              </EvidenceSection>
-              <EvidenceSection
-                title="Owner actions"
-                count={selected.ownerActions.length}
-              >
-                <FactorList items={selected.ownerActions} />
-              </EvidenceSection>
-              <EvidenceSection
-                title="Possible relevance"
-                count={selected.possibleRelevance.length}
-              >
-                <FactorList items={selected.possibleRelevance} />
-              </EvidenceSection>
-            </div>
-            <section className="role-summary">
-              <p className="eyebrow">Role information</p>
-              <h3>Role summary</h3>
-              <p>{selected.summary}</p>
-              <dl>
-                {selected.facts.map((fact) => (
-                  <div key={fact.label}>
-                    <dt>{fact.label}</dt>
-                    <dd>{fact.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-            <footer className="preparation-bar">
-              <div>
-                <ShieldCheck aria-hidden="true" />
-                <span>
-                  <strong>Ready to prepare?</strong>
-                  <small>Preparation does not submit an application.</small>
-                </span>
+          {selected ? (
+            <article
+              className="detail-pane"
+              aria-label="Selected opportunity detail"
+            >
+              <JobDetailHeader
+                job={selected}
+                onSave={() => toggleSave(selected.id)}
+                onBack={() => setMobileDetail(false)}
+              />
+              <MatchSummary job={selected} />
+              <div className="evidence-grid">
+                <EvidenceSection
+                  title="Verified matches"
+                  count={selected.verifiedMatches.length}
+                >
+                  <FactorList items={selected.verifiedMatches} tone="success" />
+                </EvidenceSection>
+                <EvidenceSection
+                  title="Partial matches"
+                  count={selected.partialMatches.length}
+                >
+                  <FactorList items={selected.partialMatches} tone="warning" />
+                </EvidenceSection>
+                <EvidenceSection
+                  title="Missing evidence"
+                  count={selected.missingEvidence.length}
+                >
+                  <FactorList items={selected.missingEvidence} />
+                </EvidenceSection>
+                <EvidenceSection
+                  title="Verified gaps"
+                  count={selected.verifiedGaps.length}
+                >
+                  <FactorList items={selected.verifiedGaps} tone="danger" />
+                </EvidenceSection>
+                <EvidenceSection
+                  title="Uncertainties"
+                  count={selected.uncertainties.length}
+                >
+                  <FactorList items={selected.uncertainties} tone="warning" />
+                </EvidenceSection>
+                <EvidenceSection
+                  title="Confirmed blockers"
+                  count={selected.confirmedBlockers.length}
+                >
+                  <FactorList
+                    items={selected.confirmedBlockers}
+                    tone="danger"
+                  />
+                </EvidenceSection>
+                <EvidenceSection
+                  title="Owner actions"
+                  count={selected.ownerActions.length}
+                >
+                  <FactorList items={selected.ownerActions} />
+                </EvidenceSection>
+                <EvidenceSection
+                  title="Possible relevance"
+                  count={selected.possibleRelevance.length}
+                >
+                  <FactorList items={selected.possibleRelevance} />
+                </EvidenceSection>
               </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setNotice("Preparation does not submit an application.")
-                }
-              >
-                Prepare application
-              </button>
-            </footer>
-            {notice && (
-              <p className="action-notice" role="status">
-                {notice}
-              </p>
-            )}
-          </article>
+              <section className="role-summary">
+                <p className="eyebrow">Role information</p>
+                <h3>Role summary</h3>
+                <p>{selected.summary}</p>
+                <dl>
+                  {selected.facts.map((fact) => (
+                    <div key={fact.label}>
+                      <dt>{fact.label}</dt>
+                      <dd>{fact.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+              <footer className="preparation-bar">
+                <div>
+                  <ShieldCheck aria-hidden="true" />
+                  <span>
+                    <strong>Ready to prepare?</strong>
+                    <small>Preparation does not submit an application.</small>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNotice("Preparation does not submit an application.")
+                  }
+                >
+                  Prepare application
+                </button>
+              </footer>
+              {notice && (
+                <p className="action-notice" role="status">
+                  {notice}
+                </p>
+              )}
+            </article>
+          ) : null}
         </div>
       </main>
     </AppShell>

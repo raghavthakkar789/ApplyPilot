@@ -128,7 +128,7 @@ No remaining unresolved decision blocks the M1 foundation.
 - Added the responsive `/resumes` workspace with version history, warnings,
   extracted text, review candidates, distinct acceptance/verification messaging,
   and deletion confirmations.
-- AI/LLM extraction, OCR, matching, source adapters, asynchronous worker jobs,
+- AI/LLM extraction, OCR, matching, asynchronous worker jobs,
   application generation, and external submission remain unimplemented.
 
 ## Secure configuration boundary (2026-09-02)
@@ -143,9 +143,28 @@ No remaining unresolved decision blocks the M1 foundation.
 - Login explains that passwords cannot be retrieved and points only to the
   local Fedora-shell reset command; no clickable recovery workflow exists.
 
+## Approved job discovery foundation (2026-09-02)
+
+- Added revision `20260902_0004` for reviewed ATS boards, synchronization runs,
+  immutable raw payload versions, canonical versions, source links, manual
+  records, and deduplication candidates.
+- Implemented fixed-origin, public, read-only Greenhouse Job Board, Lever
+  Postings, Ashby Public Job Posting, and Remotive adapters after checking
+  official documentation on 2026-09-02.
+- Manual URLs are stored but never fetched; manual provenance is visibly
+  unverified. Remotive attribution and supplied links are preserved.
+- Discover loads the authenticated catalog and labels matching `Not evaluated`;
+  no matching calculation was introduced.
+- Refresh is synchronous and bounded without a worker queue. Provider failure
+  preserves valid data and remains distinct from closure.
+- Exact application URLs link provenance to one canonical job. Deterministic
+  normalized-key similarities create owner-reviewed deduplication candidates;
+  merge/split decisions require a reason and retain source history. Two
+  consecutive successful refresh misses are required before closure.
+
 ## Not started
 
-- External-source integration
+- Any source beyond the four D-018-approved public adapters
 - Deployment beyond the local Compose runtime
 - AI extraction, inferred signals, matching, application persistence/generation,
   and external submission
@@ -153,15 +172,15 @@ No remaining unresolved decision blocks the M1 foundation.
 ## Scaffold validation completed
 
 - `git diff --check` passed.
-- Frontend formatting, lint, strict TypeScript, 25 unit/accessibility tests,
+- Frontend formatting, lint, strict TypeScript, 22 unit/accessibility tests,
   and production build pass.
 - API Ruff, mypy, Alembic history/import, and application import pass. The API
-  suite now has 60 passing tests, including
+  suite now has 67 passing tests, including
   the 20-request initialization race, expiry, CSRF, throttling, recovery, and
   redaction coverage, plus resume validation, extraction, storage, versioning,
   candidate-review, authorization, and deletion coverage.
 - Frontend authentication, Discover, Profile, Evidence, and Resumes suites pass
-  25 tests, including basic axe checks, lifecycle dialogs, CSRF mutation
+  22 tests, including basic axe checks, lifecycle dialogs, CSRF mutation
   headers, and browser-storage safeguards.
 - Worker Ruff, mypy, and its lifecycle test pass.
 - Compose configuration confirms one default loopback host publication and no

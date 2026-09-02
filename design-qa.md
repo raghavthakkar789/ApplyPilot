@@ -70,3 +70,26 @@
 - Remaining issues: P3 only — mobile uses a stacked evidence list/detail rather
   than animated master/detail transitions; no information is removed.
 - final result: passed
+
+## Job Catalog and Source Registry QA
+
+- Reference viewport: approved D-022 fourth-image composition at 1440×1024.
+- Implemented captures: `job-catalog-desktop-final.png`,
+  `job-catalog-manual-dialog-final.png`, and
+  `job-catalog-mobile-detail-final.png`.
+- Synthetic API state included three catalog records, Greenhouse and Remotive
+  provenance, a manual-entry label, and a partial Ashby failure notice.
+- Desktop checks: authenticated catalog loading, source attribution, search,
+  filter toolbar, selection, save state, `Not evaluated` match boundary, and
+  manual-job dialog were exercised at 1440×1024. The manual dialog is modal,
+  keyboard-focusable, and clearly states that URLs are never fetched.
+- Mobile checks: 390×844 single-column detail flow, Back navigation, Remotive
+  attribution, preparation-only action, stacked evidence, and zero horizontal
+  overflow. A first capture exposed header/filter overflow; wrapping and
+  mobile detail padding were corrected before this final capture.
+- Accessibility checks: semantic landmarks, visible focus styles, text status
+  labels, 44px controls, responsive filters, and keyboard selection were
+  exercised. Browser console reported zero errors and zero warnings.
+- Remaining issues: P3 only — normalized job fields will gain richer structured
+  display when the future matching and eligibility contracts are implemented.
+- final result: passed

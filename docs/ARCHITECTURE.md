@@ -483,3 +483,27 @@ credentials. Settings contain no owner profile, document content, password,
 recovery phrase, session, or CSRF values and are never exposed through API
 schemas. Next.js receives no backend secrets and continues to use only the
 same-origin FastAPI contract.
+
+### Implemented approved job-catalog boundary
+
+Alembic revision `20260902_0004_job_catalog` adds immutable raw source versions,
+versioned canonical jobs, source links, manual records, an owner-reviewed ATS
+registry, synchronization history, and non-destructive deduplication candidates.
+Only FastAPI performs outbound retrieval. URLs are constructed from fixed HTTPS
+provider origins and validated board identifiers; redirects, non-JSON content,
+oversized responses, malformed payloads, and arbitrary fetch URLs fail closed.
+
+Official interfaces checked 2026-09-02:
+
+| Source | Official interface | Access and identifier | Pagination/limits and fields consumed | Attribution/usage boundary |
+| --- | --- | --- | --- | --- |
+| Greenhouse | `https://docs.greenhouse.io/job-board.html` — Job Board API | Public unauthenticated GET; reviewed board token | No documented pagination; capped at 500; consumes id, title, location, content, update time, and absolute URL | Published jobs only; no Harvest, Ingestion, private API, or application POST |
+| Lever | `https://github.com/lever/postings-api` — Postings API | Public published postings; reviewed site name | `skip`/`limit`; JSON capped at 500; consumes id, text, categories, descriptions, workplace type, and hosted/apply URLs | No Data API, internal postings, credentials, or application POST |
+| Ashby | `https://developers.ashbyhq.com/docs/public-job-posting-api` — Public Job Posting API | Public GET; reviewed job-board name | One job-board response capped at 500; consumes listed status, title, locations, department/team, description, job/apply URLs, workplace/employment and compensation when supplied | Listed published jobs only; no authenticated, candidate, or submission APIs |
+| Remotive | `https://remotive.com/remote-jobs/api` — Remote Jobs Public API | Public global endpoint; no board identifier | One response capped at 500; consumes id, title, company, description, location, type, publication date, and supplied URL | Always show `Source: Remotive`, link to supplied URL, do not redistribute to third-party job boards; documented 24-hour delay |
+
+All adapters use a 3-second connection/10-second total timeout, a 5 MiB response
+limit, at most three safe GET attempts, bounded `Retry-After`, and no more than
+500 records. Synchronous owner refreshes allow one active run per provider and
+ten starts per minute. Failure preserves the last valid record and is distinct
+from closure. One missing observation cannot delete or conclusively close a job.

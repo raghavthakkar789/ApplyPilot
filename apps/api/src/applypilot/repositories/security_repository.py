@@ -16,6 +16,13 @@ ALLOWED_METADATA = {
     "candidate_id",
     "failure_category",
     "duplicate",
+    "registry_entry_id",
+    "sync_id",
+    "provider",
+    "job_id",
+    "manual_job_id",
+    "deduplication_candidate_id",
+    "records_seen",
 }
 
 

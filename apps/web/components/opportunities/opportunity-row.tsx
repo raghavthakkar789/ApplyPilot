@@ -41,13 +41,18 @@ export function OpportunityRow({
             {opportunity.location} · {opportunity.workplace}
           </small>
           <span className="row-metrics">
-            {insufficient ? (
-              <b>Insufficient evidence</b>
-            ) : (
-              <b>{opportunity.capabilityAlignment}% capability</b>
+            {opportunity.matchEvaluated === false ? <b>Not evaluated</b> : null}
+            {opportunity.matchEvaluated !== false && (
+              <>
+                {insufficient ? (
+                  <b>Insufficient evidence</b>
+                ) : (
+                  <b>{opportunity.capabilityAlignment}% capability</b>
+                )}
+                <span>{opportunity.evidenceCoverage}% evidence</span>
+                <EligibilityStatus status={opportunity.eligibility} compact />
+              </>
             )}
-            <span>{opportunity.evidenceCoverage}% evidence</span>
-            <EligibilityStatus status={opportunity.eligibility} compact />
           </span>
         </span>
       </button>

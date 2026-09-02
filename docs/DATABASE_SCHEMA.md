@@ -134,6 +134,14 @@ unverified candidate-fact version and cannot call verification.
 
 ## 4. Jobs and provenance
 
+Revision `20260902_0004` implements `ats_registry_entries`, `source_sync_runs`,
+immutable `raw_job_records`/`raw_job_record_versions`, versioned
+`canonical_jobs`/`canonical_job_versions`, `job_source_links`, versioned
+`manual_job_records`, and `job_deduplication_candidates`. Unique source and
+version constraints prevent identity/history rewriting; restricted foreign keys
+preserve provenance. Canonical merging never deletes source links. Manual input
+retains visibly unverified provenance and never causes URL retrieval.
+
 | Record | Purpose and key constraints |
 | --- | --- |
 | `job_sources` | Provider, read-only contract/policy version, attribution and retention profile, adapter version, enabled/health state. |

@@ -4,6 +4,22 @@ import { AlignmentMetric } from "./alignment-metric";
 import { EligibilityStatus } from "./eligibility-status";
 
 export function MatchSummary({ job }: { job: Opportunity }) {
+  if (job.matchEvaluated === false) {
+    return (
+      <section className="match-summary" aria-labelledby="match-summary-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Candidate match information</p>
+            <h3 id="match-summary-title">Not evaluated</h3>
+          </div>
+        </div>
+        <p>
+          Matching is not calculated by the job catalog. Job facts and candidate
+          evidence remain separate.
+        </p>
+      </section>
+    );
+  }
   const insufficient = job.evidenceCoverage < 40;
   return (
     <section className="match-summary" aria-labelledby="match-summary-title">

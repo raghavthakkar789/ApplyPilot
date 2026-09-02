@@ -443,6 +443,64 @@ button {
   display: grid;
   place-items: center;
 }
+.header-meta .manual-job-trigger {
+  width: auto;
+  min-width: 44px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(8 18 36 / 55%);
+}
+.dialog-card {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 24px 72px rgb(8 18 36 / 25%);
+  color: var(--text-strong);
+}
+.dialog-card form {
+  display: grid;
+  gap: 14px;
+}
+.dialog-card label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.dialog-card input,
+.dialog-card textarea {
+  min-height: 44px;
+  padding: 9px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  font: inherit;
+}
+.dialog-card textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.dialog-actions button {
+  width: auto;
+  min-width: 44px;
+  padding: 0 14px;
+}
 .toolbar {
   padding: 12px 20px 14px;
   border-bottom: 1px solid var(--border);
@@ -469,6 +527,7 @@ button {
 }
 .filter-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
@@ -973,7 +1032,7 @@ button {
     border-bottom: 0;
   }
   .filter-row {
-    overflow-x: auto;
+    overflow: visible;
   }
 }
 @media (max-width: 1023px) {
@@ -1043,7 +1102,7 @@ button {
     display: inline-flex;
   }
   .filter-row {
-    overflow-x: auto;
+    overflow: visible;
   }
   .evidence-grid {
     grid-template-columns: 1fr;
@@ -1056,6 +1115,15 @@ button {
 @media (max-width: 767px) {
   .workspace-header {
     padding: 18px 16px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .workspace-header > div:first-child {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+  .header-meta {
+    width: 100%;
   }
   .workspace-header > div:first-child p:not(.eyebrow) {
     font-size: 13px;
@@ -1100,6 +1168,9 @@ button {
   .role-summary {
     padding-left: 16px;
     padding-right: 16px;
+  }
+  .detail-pane {
+    padding-bottom: 96px;
   }
   .detail-header h2 {
     font-size: 28px;

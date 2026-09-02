@@ -59,8 +59,34 @@ export function OpportunityToolbar({
         <Filter
           label="Source"
           value={filters.source}
-          values={["Greenhouse", "Lever", "Ashby", "Remotive"]}
+          values={["Greenhouse", "Lever", "Ashby", "Remotive", "Manual"]}
           onChange={(v) => update("source", v)}
+        />
+        <Filter
+          label="Work mode"
+          value={filters.workMode}
+          values={["Remote", "Hybrid", "On-site"]}
+          onChange={(v) => update("workMode", v)}
+        />
+        <Filter
+          label="Employment type"
+          value={filters.employmentType}
+          values={["Full-time", "Contract", "Internship"]}
+          onChange={(v) => update("employmentType", v)}
+        />
+        <Filter
+          label="Freshness"
+          value={filters.freshness}
+          values={[
+            "fresh",
+            "possibly_stale",
+            "changed",
+            "closure_suspected",
+            "closed",
+            "incomplete",
+            "manually_entered",
+          ]}
+          onChange={(v) => update("freshness", v)}
         />
         <button
           className="advanced-button"
@@ -80,9 +106,8 @@ export function OpportunityToolbar({
             value={sort}
             onChange={(e) => onSort(e.target.value)}
           >
-            <option value="ranking">Ranking derivation</option>
+            <option value="title">Title</option>
             <option value="newest">Newest</option>
-            <option value="capability">Capability alignment</option>
           </select>
         </label>
       </div>

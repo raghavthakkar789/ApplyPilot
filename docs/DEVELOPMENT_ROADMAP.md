@@ -162,6 +162,12 @@ for each enabled source.
 
 ## M3 — Job ingestion and discovery
 
+Implementation status: canonical/manual catalog persistence, immutable raw and
+normalized versions, reviewed Greenhouse/Lever/Ashby registry, read-only public
+adapters, Remotive attribution, bounded synchronous refresh, safe normalization,
+and source preservation are implemented. Matching and any asynchronous U-016
+mechanism remain deferred.
+
 Implement only accepted source adapters, normalization, deduplication,
 freshness, and source-attributed detail views.
 

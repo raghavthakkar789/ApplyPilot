@@ -373,6 +373,17 @@ The local Fedora-shell reset replaces the verifier atomically, increments the
 credential version, revokes sessions, preserves history, and writes only a
 redacted event.
 
+### Approved source-request controls
+
+Job adapters are read-only backend clients with fixed official HTTPS origins.
+The frontend supplies only a validated registry identifier, never a fetch URL.
+Redirects are disabled; response type, size, shape, time, retries, and record
+count are bounded. Provider HTML is converted to inert text and raw descriptions
+or payloads are excluded from logs and frontend responses. Registry validation
+uses no owner cookies, credentials, guessed identifiers, crawling, private APIs,
+or submission endpoints. Remotive attribution and backlinking are mandatory,
+and its records are not republished to third-party destinations.
+
 ## 6. External providers and source compliance
 
 Every adapter requires a documented authorization basis, supported access

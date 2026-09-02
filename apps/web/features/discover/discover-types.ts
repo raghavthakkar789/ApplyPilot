@@ -1,6 +1,6 @@
 export type Eligibility = "compatible" | "unclear" | "blocked";
 export type Confidence = "high" | "medium" | "low";
-export type Source = "Greenhouse" | "Lever" | "Ashby" | "Remotive";
+export type Source = "Greenhouse" | "Lever" | "Ashby" | "Remotive" | "Manual";
 
 export interface EvidenceItem {
   id: string;
@@ -39,6 +39,9 @@ export interface Opportunity {
   confirmedBlockers: EvidenceItem[];
   ownerActions: EvidenceItem[];
   possibleRelevance: EvidenceItem[];
+  matchEvaluated?: boolean;
+  freshnessState?: string;
+  attribution?: string;
 }
 
 export interface DiscoverFilters {
@@ -47,4 +50,7 @@ export interface DiscoverFilters {
   skill: string;
   location: string;
   source: string;
+  workMode: string;
+  employmentType: string;
+  freshness: string;
 }

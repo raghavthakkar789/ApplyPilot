@@ -16,6 +16,9 @@ def reset_auth_database() -> None:
             text(
                 "TRUNCATE document_lifecycle_events, resume_fact_candidates, "
                 "document_extractions, resume_versions, resumes, stored_documents, "
+                "manual_job_records, job_deduplication_candidates, job_source_links, "
+                "canonical_job_versions, raw_job_record_versions, raw_job_records, "
+                "canonical_jobs, source_sync_runs, ats_registry_entries, "
                 "session_csrf_tokens, sessions, security_events, login_rate_limits, "
                 "owner_account RESTART IDENTITY CASCADE"
             )

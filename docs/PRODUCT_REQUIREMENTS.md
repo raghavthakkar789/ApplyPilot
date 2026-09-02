@@ -145,6 +145,12 @@ paths and public document URLs are prohibited.
 
 ### 4.3 Job discovery
 
+The implemented catalog stores immutable provider payload versions separately
+from normalized canonical-job versions, retains every provenance link, and uses
+only owner-triggered bounded backend synchronization. Manual entry never fetches
+its URLs. Until D-019 matching is implemented against persisted requirements,
+catalog results display **Not evaluated** rather than fixture match values.
+
 - Retrieve jobs only through approved, legally and technically supported
   sources.
 - M1 approved read-only sources are Greenhouse Job Board API, Lever Postings
