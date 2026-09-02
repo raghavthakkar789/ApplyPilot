@@ -52,6 +52,10 @@ export function LoginForm() {
       <button type="submit" disabled={busy}>
         {busy ? "Signing in…" : "Sign in"}
       </button>
+      <p className="auth-recovery-note">
+        Passwords cannot be retrieved. To reset your password, use the local
+        ApplyPilot recovery command on your Fedora computer.
+      </p>
     </form>
   );
 }

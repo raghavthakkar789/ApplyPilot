@@ -131,6 +131,18 @@ No remaining unresolved decision blocks the M1 foundation.
 - AI/LLM extraction, OCR, matching, source adapters, asynchronous worker jobs,
   application generation, and external submission remain unimplemented.
 
+## Secure configuration boundary (2026-09-02)
+
+- Backend configuration now requires a validated database DSN held in a
+  redacting secret type and reveals it only at SQLAlchemy/Alembic boundaries.
+- Startup rejects malformed DSNs, insecure non-loopback Origin/cookie
+  combinations, non-origin URLs, relative document roots, and production
+  placeholder credentials.
+- Added a repository security-boundary scan for committed environment files,
+  frontend-public secret names, and prohibited owner/recovery/token fields.
+- Login explains that passwords cannot be retrieved and points only to the
+  local Fedora-shell reset command; no clickable recovery workflow exists.
+
 ## Not started
 
 - External-source integration
@@ -144,7 +156,7 @@ No remaining unresolved decision blocks the M1 foundation.
 - Frontend formatting, lint, strict TypeScript, 25 unit/accessibility tests,
   and production build pass.
 - API Ruff, mypy, Alembic history/import, and application import pass. The API
-  suite now has 51 passing tests, including
+  suite now has 60 passing tests, including
   the 20-request initialization race, expiry, CSRF, throttling, recovery, and
   redaction coverage, plus resume validation, extraction, storage, versioning,
   candidate-review, authorization, and deletion coverage.

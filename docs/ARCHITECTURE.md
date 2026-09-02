@@ -471,3 +471,15 @@ download, and candidate-review routes. Every mutation uses D-020 CSRF and exact
 Origin enforcement. Candidate acceptance invokes the existing fact service
 and creates only an `unverified` fact version; the independent Evidence
 verification action remains mandatory.
+
+### Typed backend configuration boundary
+
+`apps/api/src/applypilot/core/config.py` is the sole typed runtime-settings
+boundary. Database credentials use Pydantic's redacting `SecretStr` and are
+revealed only to SQLAlchemy/Alembic. Startup validates a complete psycopg DSN,
+the exact Origin shape, the loopback/cookie transport relationship, and an
+absolute protected-storage root; production rejects known placeholder
+credentials. Settings contain no owner profile, document content, password,
+recovery phrase, session, or CSRF values and are never exposed through API
+schemas. Next.js receives no backend secrets and continues to use only the
+same-origin FastAPI contract.

@@ -348,6 +348,31 @@ use opaque IDs with `nosniff`, attachment disposition, sandboxing, and
 storage paths. Deterministic parsing never verifies a fact or infers a
 protected trait.
 
+### Configuration and owner-data boundary
+
+Environment files are backend runtime configuration, not an owner-data store.
+They may contain database credentials, future accepted cryptographic secrets,
+the protected-storage root, exact Host/Origin controls, and safe service
+settings. They must not contain profile/contact data, resume or document text,
+employment/education/authorization/compensation facts, plaintext or recoverable
+passwords, recovery phrases, session/CSRF values, or uploaded content.
+
+The backend settings model requires and redacts the database DSN, validates
+security-critical formats at startup, and rejects placeholder database
+credentials in production. No backend secret may use `NEXT_PUBLIC_`, enter an
+API response, or be imported into frontend code. The repository security scan
+rejects committed real environment files, public-prefixed secret names,
+prohibited `.env.example` owner/recovery/token fields, and private email-like
+values. Candidate profile data remains in PostgreSQL behind authenticated,
+purpose-specific FastAPI schemas; mutations retain CSRF and exact-Origin
+validation and immutable D-015 fact history.
+
+Argon2id verifiers are one-way and cannot support password retrieval. ApplyPilot
+has no Get password, security-question, phrase-based, or HTTP recovery path.
+The local Fedora-shell reset replaces the verifier atomically, increments the
+credential version, revokes sessions, preserves history, and writes only a
+redacted event.
+
 ## 6. External providers and source compliance
 
 Every adapter requires a documented authorization basis, supported access

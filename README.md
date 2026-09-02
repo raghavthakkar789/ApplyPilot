@@ -26,6 +26,12 @@ git --version
 
 2. Open `.env` and replace every placeholder password or secret with a strong local random value. Never commit `.env`.
 
+   Environment files are backend runtime configuration only. Never place the
+   owner's name, contact details, profile facts, resume text, login password,
+   recovery phrases, session values, or CSRF values in them. Owner information
+   is entered through authenticated Profile and Evidence flows and stored in
+   PostgreSQL.
+
 3. Validate and build the canonical Compose runtime:
 
    ```bash
@@ -130,7 +136,9 @@ Native Fedora execution may be used for debugging, but it is not a separately su
 
 Authentication uses a host-only HTTP-only session cookie. Do not copy browser
 cookies, CSRF values, `.env`, or database credentials into commands, logs, or
-Git. There is no web, email, or remote forgot-password flow.
+Git. There is no web, email, or remote forgot-password flow. Passwords cannot
+be retrieved or displayed: Argon2id stores only a one-way verifier, and
+recovery replaces the password without revealing the old one.
 
 If the owner password is lost, run the local-shell recovery command from the
 repository root. It prompts twice using hidden input, changes the verifier

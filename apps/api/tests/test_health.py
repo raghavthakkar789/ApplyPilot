@@ -33,3 +33,14 @@ def test_ready_endpoint_is_safe() -> None:
 def test_routes_use_api_boundary() -> None:
     assert request("/health/live").status_code == 404
     assert request("/api/health/live").status_code == 200
+
+
+def test_openapi_exposes_no_backend_configuration_or_password_recovery_route() -> None:
+    response = request("/openapi.json")
+    assert response.status_code == 200
+    payload = response.text.casefold()
+    assert "database_url" not in payload
+    assert "password_verifier" not in payload
+    assert "forgot-password" not in payload
+    assert "get-password" not in payload
+    assert "recovery_phrase" not in payload

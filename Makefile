@@ -1,4 +1,4 @@
-.PHONY: setup dev build test lint format check down logs
+.PHONY: setup dev build test lint format security-scan check down logs
 
 setup:
 	docker compose build
@@ -26,7 +26,10 @@ format:
 	docker compose --profile test run --rm --no-deps api-test ruff format --check src tests migrations
 	docker compose run --rm worker uv run ruff format .
 
-check: lint test
+security-scan:
+	./scripts/check-security-boundaries.sh
+
+check: lint test security-scan
 
 down:
 	docker compose down

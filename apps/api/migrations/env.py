@@ -10,7 +10,7 @@ from applypilot.core.config import get_settings
 from applypilot.repositories.database import Base
 
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+config.set_main_option("sqlalchemy.url", get_settings().database_dsn())
 if config.config_file_name:
     fileConfig(config.config_file_name)
 target_metadata = Base.metadata

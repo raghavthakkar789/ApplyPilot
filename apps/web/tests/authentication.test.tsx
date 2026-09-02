@@ -132,6 +132,11 @@ describe("M1 authentication UI", () => {
         <LoginPage />
       </AuthProvider>,
     );
+    expect(
+      await screen.findByText(
+        /Passwords cannot be retrieved.*local ApplyPilot recovery command/s,
+      ),
+    ).toBeInTheDocument();
     const user = userEvent.setup();
     const password = await screen.findByLabelText("Owner password");
     await user.type(password, "incorrect but long password{Enter}");
