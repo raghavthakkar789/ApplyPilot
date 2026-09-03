@@ -81,9 +81,11 @@ for authentication and approval; "candidate" is used for job-fit data.
   advertised, generated, or enabled in M1. First-run setup creates no TOTP
   secret or recovery code, and M1 exposes no MFA route or UI.
 - Password recovery MUST be available only through a dedicated local CLI, never
-  through the frontend or HTTP. It MUST use hidden double-entry, the first-run
-  password policy, atomic hash replacement, all-session invalidation, and a
-  redacted security event and MUST work when no TOTP configuration exists.
+  through HTTP. The login page MAY display a `Forgot password?` control that
+  shows local-shell reset instructions only; it MUST NOT accept a phrase, reveal
+  a password, or reset a credential. Recovery MUST use hidden double-entry, the
+  first-run password policy, atomic hash replacement, all-session invalidation,
+  and a redacted security event and MUST work when no TOTP configuration exists.
 
 See [Security and Compliance](SECURITY_AND_COMPLIANCE.md).
 

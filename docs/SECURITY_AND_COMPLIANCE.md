@@ -162,8 +162,10 @@ review.
 run from the local ApplyPilot project/runtime environment. The authorized
 recovery principal is the person who controls the local Fedora OS account and
 has authorized access to the ApplyPilot runtime and database. There is no
-forgot-password page or HTTP endpoint and no email, SMS, security-question, or
-remote recovery flow.
+HTTP recovery endpoint and no email, SMS, security-question, phrase-based, or
+remote recovery flow. The login page `Forgot password?` control may display
+local-shell reset instructions only; it cannot accept a phrase, reveal a
+password, or change a credential.
 
 The command MUST:
 
@@ -356,22 +358,39 @@ the protected-storage root, exact Host/Origin controls, and safe service
 settings. They must not contain profile/contact data, resume or document text,
 employment/education/authorization/compensation facts, plaintext or recoverable
 passwords, recovery phrases, session/CSRF values, or uploaded content.
+`USER_PASSWORD`, `PASSWORD_RESET_PHRASE`, `OWNER_PASSWORD`, and `GET_PASSWORD`
+are not application settings. A leftover local `.env` entry with those names is
+ignored by startup and login and must be deleted.
 
 The backend settings model requires and redacts the database DSN, validates
 security-critical formats at startup, and rejects placeholder database
 credentials in production. No backend secret may use `NEXT_PUBLIC_`, enter an
 API response, or be imported into frontend code. The repository security scan
 rejects committed real environment files, public-prefixed secret names,
-prohibited `.env.example` owner/recovery/token fields, and private email-like
-values. Candidate profile data remains in PostgreSQL behind authenticated,
-purpose-specific FastAPI schemas; mutations retain CSRF and exact-Origin
-validation and immutable D-015 fact history.
+prohibited `.env.example` owner/recovery/token fields, recoverable-password
+variable names, and private email-like values. Candidate profile data remains in
+PostgreSQL behind authenticated, purpose-specific FastAPI schemas; mutations
+retain CSRF and exact-Origin validation and immutable D-015 fact history.
 
 Argon2id verifiers are one-way and cannot support password retrieval. ApplyPilot
 has no Get password, security-question, phrase-based, or HTTP recovery path.
+The login page `Forgot password?` control only displays local-shell reset
+instructions and cannot accept a phrase, reset a password, or call an API.
 The local Fedora-shell reset replaces the verifier atomically, increments the
 credential version, revokes sessions, preserves history, and writes only a
 redacted event.
+
+A one-time local-shell import may copy `USER_NAME` and `USER_EMAIL` into
+PostgreSQL as unverified candidate facts. It requires an existing owner, shows
+only masked confirmation, never verifies those facts, and never reads a
+password. Delete those variables from `.env` after import. Website name and
+email come only from authenticated FastAPI profile and Evidence endpoints.
+
+A later browser-based reset, if desired, must not use a permanent phrase. It
+would require a new accepted security decision and a one-time, short-lived,
+hashed, loopback-bound token generated from the authenticated local shell,
+expiring within 10 minutes, single use, with attempt limits, session revocation,
+and redacted audit. That flow is not implemented.
 
 ### Approved source-request controls
 

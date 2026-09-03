@@ -1611,7 +1611,7 @@ button {
   padding: 0 13px;
   font: inherit;
 }
-.auth-form button,
+.auth-form button[type="submit"],
 .logout-button,
 .sessions-panel > button {
   min-height: 46px;
@@ -1622,9 +1622,26 @@ button {
   color: white;
   font-weight: 600;
 }
-.auth-form button:disabled,
+.auth-form button[type="submit"]:disabled,
 .sessions-panel > button:disabled {
   opacity: 0.55;
+}
+.forgot-password-control {
+  min-height: 44px;
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--link);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.auth-recovery-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 .form-help,
 .auth-trust {

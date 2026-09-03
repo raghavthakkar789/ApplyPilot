@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
 import { ApiError } from "@/features/auth/auth-api";
 
+const RESET_INSTRUCTIONS =
+  "Your password cannot be retrieved. Reset it from the local Fedora terminal using the ApplyPilot password-reset command.";
+
 export function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showResetHelp, setShowResetHelp] = useState(false);
   return (
     <form
       className="auth-form"
@@ -52,10 +56,20 @@ export function LoginForm() {
       <button type="submit" disabled={busy}>
         {busy ? "Signing in…" : "Sign in"}
       </button>
-      <p className="auth-recovery-note">
-        Passwords cannot be retrieved. To reset your password, use the local
-        ApplyPilot recovery command on your Fedora computer.
-      </p>
+      <button
+        type="button"
+        className="forgot-password-control"
+        aria-expanded={showResetHelp}
+        aria-controls="password-reset-instructions"
+        onClick={() => setShowResetHelp((open) => !open)}
+      >
+        Forgot password?
+      </button>
+      {showResetHelp && (
+        <p id="password-reset-instructions" className="auth-recovery-note">
+          {RESET_INSTRUCTIONS}
+        </p>
+      )}
     </form>
   );
 }

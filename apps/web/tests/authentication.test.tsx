@@ -133,11 +133,19 @@ describe("M1 authentication UI", () => {
       </AuthProvider>,
     );
     expect(
+      await screen.findByRole("button", { name: "Forgot password?" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Your password cannot be retrieved/i),
+    ).not.toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Forgot password?" }));
+    expect(
       await screen.findByText(
-        /Passwords cannot be retrieved.*local ApplyPilot recovery command/s,
+        /Your password cannot be retrieved.*ApplyPilot password-reset command/s,
       ),
     ).toBeInTheDocument();
-    const user = userEvent.setup();
+    expect(screen.queryByLabelText(/recovery phrase/i)).not.toBeInTheDocument();
     const password = await screen.findByLabelText("Owner password");
     await user.type(password, "incorrect but long password{Enter}");
     expect(await screen.findByRole("alert")).toHaveTextContent(

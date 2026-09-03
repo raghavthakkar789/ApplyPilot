@@ -69,8 +69,51 @@ def test_settings_schema_contains_no_owner_profile_or_recovery_fields() -> None:
         "recovery_phrase",
         "session_token",
         "csrf_token",
+        "user_name",
+        "user_email",
+        "user_password",
+        "password_reset_phrase",
+        "owner_password",
+        "get_password",
     }
     assert prohibited.isdisjoint(Settings.model_fields)
+
+
+def test_startup_ignores_environment_passwords_and_phrases(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("USER_PASSWORD", "env-password-must-be-ignored-xx")
+    monkeypatch.setenv("PASSWORD_RESET_PHRASE", "env-phrase-must-be-ignored")
+    monkeypatch.setenv("OWNER_PASSWORD", "env-owner-password-must-be-ignored")
+    configured = settings()
+    dumped = configured.model_dump()
+    rendered = repr(configured)
+    assert "user_password" not in dumped
+    assert "password_reset_phrase" not in dumped
+    assert "env-password-must-be-ignored-xx" not in rendered
+    assert "env-phrase-must-be-ignored" not in rendered
+
+
+def test_env_example_contains_no_personal_or_recoverable_password_fields() -> None:
+    from pathlib import Path
+
+    here = Path(__file__).resolve()
+    candidates = [Path.cwd() / ".env.example"]
+    candidates.extend(parent / ".env.example" for parent in here.parents)
+    example = next((path for path in candidates if path.is_file()), None)
+    if example is None:
+        pytest.skip("Repository .env.example is not mounted in the API test image")
+    text = example.read_text()
+    for banned in (
+        "USER_" "PASSWORD",
+        "PASSWORD_" "RESET_PHRASE",
+        "OWNER_" "PASSWORD",
+        "GET_" "PASSWORD",
+        "RECOVERY_" "PHRASE",
+        "USER_" "NAME",
+        "USER_" "EMAIL",
+        "NEXT_PUBLIC_" "USER_",
+        "@" "gmail.",
+    ):
+        assert banned not in text
 
 
 def test_transport_and_storage_configuration_fail_closed() -> None:

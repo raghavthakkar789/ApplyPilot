@@ -2,7 +2,20 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-REDACTED_KEYS = {"authorization", "cookie", "password", "secret", "session", "token"}
+REDACTED_KEYS = {
+    "authorization",
+    "cookie",
+    "password",
+    "password_reset_phrase",
+    "phrase",
+    "recovery_phrase",
+    "secret",
+    "session",
+    "token",
+    "user_email",
+    "user_name",
+    "user_password",
+}
 
 
 class RedactionFilter(logging.Filter):

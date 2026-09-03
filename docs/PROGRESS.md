@@ -170,6 +170,20 @@ No remaining unresolved decision blocks the M1 foundation.
 - Production web, API, and worker images keep their runtime layers. The
   `test` profile still publishes no host ports.
 
+## Owner-data and password-recovery boundary (2026-09-04)
+
+- PostgreSQL is authoritative for owner name, email, and the Argon2id password
+  verifier. Environment variables are not profile or password storage.
+- A one-time local-shell import can copy name and email into unverified
+  candidate-fact versions. Evidence verification remains a separate owner
+  action. `USER_NAME` and `USER_EMAIL` should be removed from `.env` after
+  import.
+- Application startup and login ignore `USER_PASSWORD` and
+  `PASSWORD_RESET_PHRASE`. Passwords cannot be retrieved. Reset remains
+  `python -m applypilot.cli.reset_password`.
+- The login page `Forgot password?` control shows local-shell instructions only
+  and exposes no recovery API.
+
 ## Not started
 
 - Any source beyond the four D-018-approved public adapters

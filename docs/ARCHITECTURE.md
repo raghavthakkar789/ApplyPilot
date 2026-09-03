@@ -143,7 +143,9 @@ after completion. M1 setup creates no TOTP secret or recovery-code material.
 Password recovery is a dedicated CLI operation available only from the local
 ApplyPilot project/runtime environment. Possession of the Fedora OS account
 plus authorized runtime/database access is the recovery authority. No recovery
-operation is exposed through Next.js, FastAPI, or any HTTP route.
+operation is exposed through FastAPI or any HTTP route. Next.js may display
+local-shell reset instructions on the login page and must never read `.env` or
+reset a password.
 
 The M1 CLI prompts twice for the new password using hidden input, applies the same
 password policy as first-run setup, and uses one database transaction to
@@ -484,7 +486,14 @@ absolute protected-storage root; production rejects known placeholder
 credentials. Settings contain no owner profile, document content, password,
 recovery phrase, session, or CSRF values and are never exposed through API
 schemas. Next.js receives no backend secrets and continues to use only the
-same-origin FastAPI contract.
+same-origin FastAPI contract. `USER_PASSWORD` and `PASSWORD_RESET_PHRASE` are
+not settings fields; login uses only the Argon2id verifier in PostgreSQL.
+
+A local-shell command `python -m applypilot.cli.import_owner_details_from_env`
+may import name and email once into PostgreSQL as unverified D-015 facts after
+the owner already exists. The website reads those details only through
+authenticated FastAPI endpoints. Password reset remains
+`python -m applypilot.cli.reset_password`.
 
 ### Implemented approved job-catalog boundary
 

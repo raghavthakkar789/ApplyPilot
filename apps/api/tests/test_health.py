@@ -44,3 +44,5 @@ def test_openapi_exposes_no_backend_configuration_or_password_recovery_route() -
     assert "forgot-password" not in payload
     assert "get-password" not in payload
     assert "recovery_phrase" not in payload
+    assert "password_reset_phrase" not in payload
+    assert "user_password" not in payload

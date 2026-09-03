@@ -70,6 +70,22 @@ class CandidateFactService:
             self.database.commit()
         return identity, version
 
+    def upsert_unverified(
+        self, request: FactCreateRequest, *, reason: str, commit: bool = True
+    ) -> tuple[CandidateFactIdentity, CandidateFactVersion, bool]:
+        identity = self.repository.identity_by_key(request.semantic_key, request.scope, lock=True)
+        if identity is None:
+            identity, version = self.create(request, commit=commit)
+            return identity, version, True
+        versions = self.repository.versions(identity.id)
+        current = versions[0]
+        if current.superseded_at is None and current.integrity_hash == value_hash(request.value):
+            return identity, current, False
+        identity, version = self.edit(
+            identity.id, FactEditRequest(**request.model_dump(), reason=reason), commit=commit
+        )
+        return identity, version, True
+
     def edit(
         self, identity_id: str, request: FactEditRequest, *, commit: bool = True
     ) -> tuple[CandidateFactIdentity, CandidateFactVersion]:

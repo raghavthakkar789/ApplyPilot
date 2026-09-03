@@ -30,7 +30,7 @@ git --version
    owner's name, contact details, profile facts, resume text, login password,
    recovery phrases, session values, or CSRF values in them. Owner information
    is entered through authenticated Profile and Evidence flows and stored in
-   PostgreSQL.
+   PostgreSQL. `USER_PASSWORD` and `PASSWORD_RESET_PHRASE` are not supported.
 
 3. Validate and build the canonical Compose runtime:
 
@@ -141,11 +141,15 @@ Native Fedora execution may be used for debugging, but it is not a separately su
 
 Authentication uses a host-only HTTP-only session cookie. Do not copy browser
 cookies, CSRF values, `.env`, or database credentials into commands, logs, or
-Git. There is no web, email, or remote forgot-password flow. Passwords cannot
-be retrieved or displayed: Argon2id stores only a one-way verifier, and
-recovery replaces the password without revealing the old one.
+Git. PostgreSQL is the authoritative store for owner profile data. Environment
+variables are backend runtime configuration only and are not a profile store.
 
-If the owner password is lost, run the local-shell recovery command from the
+Passwords cannot be retrieved or displayed. Argon2id stores only a one-way
+verifier. There is no Get password feature, recovery phrase, HTTP reset, or
+environment-password fallback. The login page may show local-shell reset
+instructions; it cannot reset or reveal a password.
+
+If the owner password is lost, run the local-shell reset command from the
 repository root. It prompts twice using hidden input, changes the verifier
 atomically, increments the credential version, and revokes every session:
 
@@ -155,6 +159,17 @@ docker compose run --rm api python -m applypilot.cli.reset_password
 
 The command requires the database service to be running and authorized access
 to the local Fedora account and ApplyPilot runtime.
+
+Optional one-time name and email import, after the owner already exists:
+
+```bash
+docker compose run --rm api python -m applypilot.cli.import_owner_details_from_env
+```
+
+The command may read `USER_NAME` and `USER_EMAIL` only, or accept `--name` and
+`--email`. It never reads a password. Imported values become PostgreSQL profile
+fields and unverified candidate-fact versions. Confirm them in Evidence. Remove
+`USER_NAME` and `USER_EMAIL` from `.env` immediately after a successful import.
 
 ## Service boundaries
 

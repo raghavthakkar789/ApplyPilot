@@ -17,14 +17,15 @@ class CandidateProfileService:
     def get(self) -> CandidateProfile | None:
         return self.repository.get()
 
-    def update(self, sections: ProfileSections) -> CandidateProfile:
+    def update(self, sections: ProfileSections, *, commit: bool = True) -> CandidateProfile:
         profile = self.get()
         now = datetime.now(UTC)
         if profile is not None:
             profile.sections = sections.model_dump(mode="json")
             profile.updated_at = now
             self.events.record("candidate_profile_updated")
-            self.database.commit()
+            if commit:
+                self.database.commit()
             return profile
         profile = CandidateProfile(
             owner_id=1,
@@ -34,5 +35,6 @@ class CandidateProfileService:
         )
         self.database.add(profile)
         self.events.record("candidate_profile_created")
-        self.database.commit()
+        if commit:
+            self.database.commit()
         return profile

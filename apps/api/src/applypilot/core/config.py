@@ -6,6 +6,19 @@ from urllib.parse import urlsplit
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+PROHIBITED_SETTINGS_FIELDS = frozenset(
+    {
+        "user_name",
+        "user_email",
+        "user_password",
+        "password_reset_phrase",
+        "owner_password",
+        "get_password",
+        "recovery_phrase",
+        "original_password",
+    }
+)
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -21,6 +34,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_security_boundaries(self) -> "Settings":
+        if PROHIBITED_SETTINGS_FIELDS & set(type(self).model_fields):
+            raise ValueError("Settings cannot store owner profile or recoverable password fields")
         database_url = self.database_url.get_secret_value()
         parsed_database = urlsplit(database_url)
         if (

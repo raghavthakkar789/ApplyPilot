@@ -90,8 +90,11 @@ must remain in the log with a link to the replacing decision.
 - **Decision:** Password recovery is available only through a dedicated CLI
   command run from the local ApplyPilot project/runtime environment. Control of
   the local Fedora OS account plus authorized runtime/database access is the
-  recovery authority. No frontend, HTTP, email, SMS, security-question, or
-  remote recovery flow exists.
+  recovery authority. No HTTP, email, SMS, security-question, phrase-based, or
+  remote recovery flow exists. The login page may show a `Forgot password?`
+  control that displays local-shell reset instructions only; that control is
+  instructional disclosure, not a recovery UI, and cannot reset or retrieve a
+  password.
 - **Password behavior:** Prompt twice with hidden input, enforce the first-run
   password policy, and atomically replace the Argon2id hash, revoke all
   sessions, and append a redacted security event. Any failure leaves the
@@ -102,8 +105,8 @@ must remain in the log with a link to the replacing decision.
   reset it; TOTP reset requires a separate option, prominent warning, and
   additional confirmation and invalidates the credential, recovery codes, and
   all sessions while writing a redacted event.
-- **Deferred detail:** Authentication scaffolding will finalize the exact
-  command name and implementation. Backups are not password recovery.
+- **Command:** `docker compose run --rm api python -m applypilot.cli.reset_password`.
+  Backups are not password recovery.
 
 ### D-012 — Canonical Milestone 1 runtime
 
@@ -489,6 +492,13 @@ must remain in the log with a link to the replacing decision.
 - S3-compatible document storage
 - Unapproved submission adapters
 - Automated sending of follow-up communications
+- Browser-based password reset, including any one-time short-lived reset token.
+  A future proposal must be a new accepted security decision. If implemented,
+  such a token must authorize password replacement only, never reveal the old
+  password, be stored only as a hash, expire within 10 minutes, be single use,
+  remain bound to loopback, revoke every session after reset, have strict
+  attempt limits, and be audited without storing the token. Permanent recovery
+  phrases are not an allowed design.
 
 ## Next recommended decision
 

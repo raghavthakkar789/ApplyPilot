@@ -19,6 +19,18 @@ class CandidateFactRepository:
             )
         )
 
+    def identity_by_key(
+        self, semantic_key: str, scope: str = "*", *, lock: bool = False
+    ) -> CandidateFactIdentity | None:
+        statement = select(CandidateFactIdentity).where(
+            CandidateFactIdentity.owner_id == 1,
+            CandidateFactIdentity.semantic_key == semantic_key,
+            CandidateFactIdentity.scope == scope,
+        )
+        if lock:
+            statement = statement.with_for_update()
+        return self.database.scalar(statement)
+
     def identity(self, identity_id: str, lock: bool = False) -> CandidateFactIdentity | None:
         statement = select(CandidateFactIdentity).where(CandidateFactIdentity.id == identity_id)
         if lock:
